@@ -1,0 +1,386 @@
+/**
+ * ප්‍රජා සංවර්ධන සභා මගින් සිදු කරන ලද වැඩසටහන් - Responsive Breakpoints & Mobile Optimization
+ * අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසය
+ */
+
+/* Strict Global Mobile Overflow Containment */
+html, body {
+  max-width: 100vw !important;
+  width: 100% !important;
+  overflow-x: hidden !important;
+  position: relative !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box !important;
+}
+
+.app-layout {
+  max-width: 100vw !important;
+  width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.app-main {
+  max-width: 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+.tab-content-area,
+.tab-view {
+  max-width: 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+/* Laptops & Desktops (max 1280px) */
+@media (max-width: 1280px) {
+  :root {
+    --sidebar-width: 260px;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card {
+    height: 380px;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1.8fr 1fr 1fr auto;
+  }
+}
+
+/* Tablets (max 1024px) */
+@media (max-width: 1024px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 200;
+    width: 280px;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .app-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .mobile-sidebar-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tab-content-area {
+    padding: 1.3rem;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stats-grid-4 {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .activity-web-article-body {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+}
+
+/* Mobile Screens (max 768px) */
+@media (max-width: 768px) {
+  /* Complete removal of 3D floating spheres on mobile for zero horizontal overflow & high speed */
+  .shape-3d-sphere,
+  .sphere-3d-1,
+  .sphere-3d-2,
+  .sphere-3d-3,
+  .sphere-3d-4 {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    visibility: hidden !important;
+    position: static !important;
+  }
+
+  .bg-grid-overlay {
+    max-width: 100vw !important;
+    overflow: hidden !important;
+  }
+
+  /* Compact responsive topbar */
+  .app-topbar {
+    padding: 0 0.75rem !important;
+    height: 56px !important;
+    gap: 0.5rem !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .topbar-right {
+    gap: 0.4rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  .topbar-right .topbar-clock,
+  .topbar-right .status-indicator,
+  .topbar-right .btn-trigger-print {
+    display: none !important;
+  }
+
+  .search-input-wrap {
+    width: 120px !important;
+    max-width: 120px !important;
+  }
+
+  .search-input-wrap .glass-input {
+    padding: 0.35rem 0.6rem 0.35rem 1.8rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .current-view-title {
+    font-size: 0.88rem !important;
+  }
+
+  .tab-header-box {
+    margin-bottom: 1.1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tab-main-heading {
+    font-size: 1.22rem !important;
+    line-height: 1.35;
+  }
+
+  .tab-content-area {
+    padding: 0.85rem !important;
+  }
+
+  /* Force multi-column grids to single column on mobile */
+  .overview-latest-month-split-grid,
+  .activity-web-article-body,
+  .hero-content,
+  [style*="grid-template-columns: 1.3fr 1fr"],
+  [style*="grid-template-columns: 1.4fr 1fr"],
+  [style*="grid-template-columns: 2fr 1fr"],
+  [style*="grid-template-columns: 1.8fr 1.2fr"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns: repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .activities-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .division-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+  }
+
+  .activity-hero-photo-wrap {
+    height: 200px !important;
+  }
+
+  .activity-web-article {
+    padding: 1.1rem !important;
+  }
+
+  .activity-web-article-title {
+    font-size: 1.1rem !important;
+  }
+
+  .hero-banner-card {
+    padding: 1.1rem !important;
+  }
+
+  .kpi-grid,
+  .stats-grid-4 {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .stat-card-3d,
+  .kpi-card {
+    padding: 1rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .stat-number,
+  .kpi-value {
+    font-size: 1.85rem !important;
+  }
+
+  .report-doc-card {
+    padding: 1.2rem;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+
+  .modal-slider-wrap {
+    height: 200px;
+  }
+
+  .modal-content-inner {
+    padding: 1.1rem;
+  }
+
+  .modal-info-table {
+    grid-template-columns: 1fr;
+  }
+
+  .report-table-wrap,
+  .table-responsive {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Small Smartphone Screens (max 480px) */
+@media (max-width: 480px) {
+  .search-input-wrap {
+    display: none !important;
+  }
+
+  .current-view-breadcrumb span:first-child,
+  .current-view-breadcrumb i {
+    display: none !important;
+  }
+
+  .tab-main-heading {
+    font-size: 1.12rem !important;
+  }
+
+  .subtabs-bar {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .gn-slider-container {
+    padding: 0.35rem !important;
+  }
+
+  .slider-arrow-btn {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .gn-nav-pill-btn {
+    font-size: 0.78rem !important;
+    padding: 0.4rem 0.75rem !important;
+  }
+
+  .hero-title {
+    font-size: 1.35rem !important;
+  }
+
+  .hero-tag {
+    font-size: 0.74rem !important;
+  }
+}
+
+/* Mobile Sidebar Backdrop */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 190;
+  display: none;
+}
+
+.sidebar-backdrop.active {
+  display: block;
+}
+
+/* --- Official Print Stylesheet --- */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-family: 'Noto Sans Sinhala', sans-serif !important;
+  }
+
+  .app-sidebar,
+  .app-topbar,
+  .sidebar-backdrop,
+  .subtabs-bar,
+  .filter-card,
+  .btn-gold,
+  .btn-glass,
+  .modal-overlay,
+  .lightbox-overlay,
+  .shape-3d-sphere,
+  .bg-grid-overlay,
+  .app-footer {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0 !important;
+  }
+
+  .tab-view {
+    display: block !important;
+    page-break-after: always;
+  }
+
+  .glass-panel,
+  .glass-card-3d,
+  .stat-card-3d,
+  .division-card,
+  .export-card {
+    background: #FFF !important;
+    border: 1px solid #CCC !important;
+    box-shadow: none !important;
+    color: #000 !important;
+  }
+
+  .gold-text-gradient,
+  .stat-number,
+  .tab-main-heading,
+  .activity-title,
+  .div-card-name {
+    color: #000 !important;
+    -webkit-text-fill-color: initial !important;
+  }
+
+  .comparison-table th {
+    background: #F1F5F9 !important;
+    color: #000 !important;
+    border-bottom: 2px solid #000 !important;
+  }
+
+  .comparison-table td {
+    color: #000 !important;
+    border-bottom: 1px solid #DDD !important;
+  }
+}
