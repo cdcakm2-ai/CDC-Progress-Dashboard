@@ -161,6 +161,14 @@ class PssApp {
       this.switchTab("overview");
     }
 
+    // Listen for hash changes so URL links, bookmarks, and browser navigation switch tabs automatically
+    window.addEventListener("hashchange", () => {
+      const h = window.location.hash.replace("#", "");
+      if (h && this.tabTitles[h] && this.activeTab !== h) {
+        this.switchTab(h);
+      }
+    });
+
     console.log("🚀 Praja Sanwardhana Sabhas 8-Tab Dashboard initialized successfully with all 63 GN Divisions.");
   }
 

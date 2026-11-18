@@ -68,8 +68,8 @@ html, body {
   }
 }
 
-/* Tablets (max 1024px) */
-@media (max-width: 1024px) {
+/* Mobile Screens (max 768px) - Drawer Sidebar */
+@media (max-width: 768px) {
   .app-sidebar {
     transform: translateX(-100%);
     position: fixed;
