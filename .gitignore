@@ -8,6 +8,7 @@ __pycache__/
 # Local Config & Secrets
 .env
 *.log
+raw_drive_data/
 
 # OS & Editor
 .DS_Store

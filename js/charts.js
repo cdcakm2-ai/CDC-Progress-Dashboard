@@ -102,6 +102,7 @@ class PssCharts {
   }
 
   renderAll() {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAll"); return; }
     if (typeof Chart === "undefined") return;
     try { this.renderMonthlyChart(); } catch (e) { console.warn("Monthly chart error:", e); }
     try { this.renderCategoryChart(); } catch (e) { console.warn("Category chart error:", e); }
@@ -129,6 +130,7 @@ class PssCharts {
    * Royal Blue / Cyan Gradient Bars + Emerald Line
    */
   renderMonthlyChart() {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderMonthlyChart"); return; }
     const canvas = document.getElementById("monthlyProgressChart");
     if (!canvas) return;
     if (this.monthlyChart) this.monthlyChart.destroy();
@@ -222,6 +224,7 @@ class PssCharts {
    * 10-Color Multi-Palette with Cutout Depth
    */
   renderCategoryChart() {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderCategoryChart"); return; }
     const canvas = document.getElementById("categoryBreakdownChart");
     if (!canvas) return;
     if (this.categoryChart) this.categoryChart.destroy();
@@ -280,6 +283,7 @@ class PssCharts {
    * Violet to Royal Blue Gradient
    */
   renderGNRankingChart() {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderGNRankingChart"); return; }
     const canvas = document.getElementById("gnProgressChart");
     if (!canvas) return;
     if (this.gnRankingChart) this.gnRankingChart.destroy();
@@ -337,6 +341,7 @@ class PssCharts {
   // =========================================================================
 
   renderAllAnalyticsCharts() {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAllAnalyticsCharts"); return; }
     this.renderAnCumulativeChart();
     this.renderAnMonthlyTrendChart();
     this.renderAnTopDivisionsChart();
@@ -351,6 +356,7 @@ class PssCharts {
    * Royal Blue Bars + Glowing Amber/Gold Cumulative Area Curve
    */
   renderAnCumulativeChart(monthlyData) {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAnCumulativeChart"); return; }
     const canvas = document.getElementById("anCumulativeChart");
     if (!canvas) return;
     if (this.anCumulativeChart) this.anCumulativeChart.destroy();
@@ -432,6 +438,7 @@ class PssCharts {
    * Cyan/Teal Bars + Coral Trend Line
    */
   renderAnMonthlyTrendChart(monthlyData) {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAnMonthlyTrendChart"); return; }
     const canvas = document.getElementById("anMonthlyTrendChart");
     if (!canvas) return;
     if (this.anMonthlyTrendChart) this.anMonthlyTrendChart.destroy();
@@ -522,6 +529,7 @@ class PssCharts {
    * Rank-based Palette (Gold, Blue, Violet tiers)
    */
   renderAnTopDivisionsChart(divisionsData) {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAnTopDivisionsChart"); return; }
     const canvas = document.getElementById("anTopDivisionsChart");
     if (!canvas) return;
     if (this.anTopDivisionsChart) this.anTopDivisionsChart.destroy();
@@ -578,6 +586,7 @@ class PssCharts {
    * 7. Analytics: 10 Sectors Charts (Doughnut & Horizontal Bar)
    */
   renderAnSectorCharts(categoriesData) {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAnSectorCharts"); return; }
     const cats = categoriesData || this.data?.categories || this.data?.analyticalCategories || [];
     if (!cats.length) return;
 
@@ -662,6 +671,7 @@ class PssCharts {
    * 8. Analytics: Weekday & Weekend Analysis Charts
    */
   renderAnTimelineCharts() {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAnTimelineCharts"); return; }
     const rawActs = this.data?.activities || [];
     const weekdayMap = {
       0: { daySi: "ඉරිදා", count: 0, isWeekend: true, color: "#EA580C" },
@@ -761,6 +771,7 @@ class PssCharts {
    * 4-Tier Colorful Breakdown
    */
   renderAnDiversityChart(divisionsData) {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAnDiversityChart"); return; }
     const canvas = document.getElementById("anDiversityDistChart");
     if (!canvas) return;
     if (this.anDiversityDistChart) this.anDiversityDistChart.destroy();
@@ -819,6 +830,7 @@ class PssCharts {
    * Royal Blue vs Amber Dual Bars
    */
   renderAnCompareChart(itemA, itemB, mode) {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAnCompareChart"); return; }
     const canvas = document.getElementById("anCompareChart");
     if (!canvas || !itemA || !itemB) return;
     if (this.anCompareChart) this.anCompareChart.destroy();
@@ -887,6 +899,7 @@ class PssCharts {
    * Royal Blue & Teal Grouped Bars
    */
   renderAnDeepdiveFinChart(divisionsData) {
+    if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAnDeepdiveFinChart"); return; }
     const canvas = document.getElementById("anDeepdiveFinChart");
     if (!canvas) return;
     if (this.anDeepdiveFinChart) this.anDeepdiveFinChart.destroy();
