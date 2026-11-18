@@ -27,6 +27,16 @@
 
   <!-- html2pdf.js CDN for Direct PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- Google Identity Services (GIS) for Google OAuth 2.0 -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    window.PSS_CONFIG = {
+      googleClientId: "385022926771-9ees1jtcu1nmsqd0bkr2nkp3e559f529.apps.googleusercontent.com",
+      driveFolderId: "1jBY0y_QWiinEPXEpEU6OwesPmlIna33C",
+      redirectUri: "https://cdcakm2-ai.github.io/CDC-Progress-Dashboard/"
+    };
+  </script>
 </head>
 <body>
 
@@ -152,6 +162,12 @@
           <div class="topbar-clock">
             <i class="bi bi-clock-history"></i>
             <span id="liveClock">--:--:--</span>
+          </div>
+
+          <!-- Google Cloud OAuth 2.0 Quick Status Pill -->
+          <div id="topbarGoogleAuthStatus" class="topbar-auth-pill" style="display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(66, 133, 244, 0.12); border: 1px solid rgba(66, 133, 244, 0.3); border-radius: 999px; padding: 0.4rem 0.85rem; font-size: 0.76rem; color: #93C5FD; cursor: pointer; text-decoration: none; transition: all 0.2s ease;" title="Google Cloud OAuth 2.0 තත්ත්වය">
+            <i class="bi bi-google"></i>
+            <span id="topbarGoogleAuthText">OAuth 2.0 Ready</span>
           </div>
 
           <button class="btn-gold btn-trigger-print" style="padding: 0.45rem 0.95rem; font-size: 0.8rem;" title="ප්‍රගති වාර්තාව මුද්‍රණය">
@@ -1624,6 +1640,73 @@
               <button id="btnRefreshSystemData" class="btn-gold">
                 <i class="bi bi-arrow-repeat"></i> දත්ත සමමුහුර්ත කරන්න (Sync)
               </button>
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- GOOGLE CLOUD OAUTH 2.0 INTEGRATION PANEL -->
+          <!-- ========================================== -->
+          <div class="glass-panel" id="googleOAuthPanel" style="padding: 1.5rem; margin-bottom: 1.8rem; border: 1px solid rgba(66, 133, 244, 0.3); background: linear-gradient(135deg, rgba(66, 133, 244, 0.08) 0%, rgba(15, 23, 42, 0.7) 100%);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+              <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(66, 133, 244, 0.15); border: 1px solid rgba(66, 133, 244, 0.35); display: flex; align-items: center; justify-content: center; font-size: 1.45rem; color: #4285F4; flex-shrink: 0;">
+                  <i class="bi bi-google"></i>
+                </div>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                    <h3 style="font-size: 1.12rem; font-weight: 700; color: #FFF; margin: 0;">Google Cloud OAuth 2.0 සහ සජීවී Drive API සබඳතාව</h3>
+                    <span id="googleAuthStatusBadge" class="glass-badge blue" style="font-size: 0.76rem;">
+                      <span class="status-indicator-dot" style="background: #34D399;"></span> සූදානම් (Client ID Ready)
+                    </span>
+                  </div>
+                  <p style="font-size: 0.82rem; color: #94A3B8; margin: 0.35rem 0 0 0; line-height: 1.5;">
+                    අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලයේ නිල Google Drive ගබඩාව හා සෘජුව සම්බන්ධ වී තත්‍ය කාලීනව නව මාසික වාර්තා පරිලෝකනය හා දත්ත සමමුහුර්ත කිරීමේ හැකියාව.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Action buttons -->
+              <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                <button id="btnGoogleAuthConnect" class="btn-gold" style="font-size: 0.84rem; padding: 0.55rem 1.2rem;">
+                  <i class="bi bi-google"></i> Google ගිණුම සම්බන්ධ කරන්න
+                </button>
+                <button id="btnGoogleScanDrive" class="btn-glass" style="font-size: 0.84rem; padding: 0.55rem 1.1rem; display: none;">
+                  <i class="bi bi-cloud-arrow-down-fill text-blue"></i> Drive පරිලෝකනය (Live Scan)
+                </button>
+                <button id="btnGoogleAuthDisconnect" class="btn-glass" style="font-size: 0.84rem; padding: 0.55rem 1.1rem; display: none; color: #F87171;">
+                  <i class="bi bi-box-arrow-right"></i> විසන්ධි කරන්න
+                </button>
+              </div>
+            </div>
+
+            <!-- Details Bar: Client ID & Config details -->
+            <div style="margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: 0.78rem; color: #94A3B8;">
+              <div>
+                <span style="color: #64748B;">Client ID:</span>
+                <code style="background: rgba(0,0,0,0.3); padding: 0.15rem 0.45rem; border-radius: 4px; color: #93C5FD;" id="lblGoogleClientId">385022926771-9ees1jtcu1nmsqd0bkr2nkp3e559f529.apps.googleusercontent.com</code>
+              </div>
+              <div>
+                <span style="color: #64748B;">Drive Folder:</span>
+                <code style="background: rgba(0,0,0,0.3); padding: 0.15rem 0.45rem; border-radius: 4px; color: #FDE68A;">1jBY0y_QWiinEPXEpEU6OwesPmlIna33C</code>
+              </div>
+              <div>
+                <span style="color: #64748B;">Auth Framework:</span>
+                <span style="color: #34D399; font-weight: 600;"><i class="bi bi-shield-lock-fill"></i> Google Identity Services (GIS) Token Client</span>
+              </div>
+              <div>
+                <span style="color: #64748B;">Live Target:</span>
+                <span style="color: #A78BFA; font-weight: 600;">GitHub Pages (cdcakm2-ai.github.io)</span>
+              </div>
+            </div>
+
+            <!-- Container for Live Drive Scan Results (when authenticated) -->
+            <div id="googleLiveScanContainer" style="display: none; margin-top: 1.2rem; padding: 1.2rem; border-radius: 10px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.06);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+                <span style="font-weight: 700; color: #FFF; font-size: 0.9rem;"><i class="bi bi-folder-check text-blue"></i> Google Drive සජීවී ගොනු ලැයිස්තුව</span>
+                <span id="googleLiveScanCount" class="glass-badge blue" style="font-size: 0.72rem;">පරීක්ෂා කරමින්...</span>
+              </div>
+              <div id="googleLiveScanList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; font-size: 0.8rem;">
+              </div>
             </div>
           </div>
 

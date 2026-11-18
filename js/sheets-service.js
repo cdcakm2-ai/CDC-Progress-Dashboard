@@ -1,6 +1,9 @@
 /**
- * Google Sheets & Google Drive Integration Engine
+ * Google Sheets & Google Drive Integration Engine with Google OAuth 2.0 (GIS)
  * ප්‍රජා සංවර්ධන සභා මගින් සිදු කරන ලද වැඩසටහන් - අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසය
+ * 
+ * Google Cloud OAuth 2.0 Client ID:
+ * 385022926771-9ees1jtcu1nmsqd0bkr2nkp3e559f529.apps.googleusercontent.com
  * 
  * Data Sources:
  * - Primary Drive Folder: 1jBY0y_QWiinEPXEpEU6OwesPmlIna33C
@@ -15,6 +18,13 @@ class PssSheetsService {
     this.cacheKey = "pss_real_drive_cache_v10";
     this.cacheTimeKey = "pss_real_drive_cache_time_v10";
     
+    // Google Cloud OAuth 2.0 Configuration
+    this.googleClientId = (this.config && this.config.googleClientId) || "385022926771-9ees1jtcu1nmsqd0bkr2nkp3e559f529.apps.googleusercontent.com";
+    this.driveFolderId = (this.config && this.config.driveFolderId) || "1jBY0y_QWiinEPXEpEU6OwesPmlIna33C";
+    this.tokenClient = null;
+    this.accessToken = sessionStorage.getItem("pss_google_access_token") || null;
+    this.authCallbacks = [];
+
     // Configured live Google Sheets
     this.sheets = [
       {
@@ -30,7 +40,165 @@ class PssSheetsService {
         defaultMonth: "2026-08"
       }
     ];
+
+    // Attempt lazy init if Google Identity Services is already in DOM
+    this.tryInitGoogleAuth();
   }
+
+  // =========================================================================
+  // Google OAuth 2.0 (Google Identity Services - GIS) Integration
+  // =========================================================================
+
+  onAuthStateChange(callback) {
+    if (typeof callback === "function") {
+      this.authCallbacks.push(callback);
+      // Immediately notify current state
+      callback(this.isGoogleAuthenticated());
+    }
+  }
+
+  notifyAuthChange(isAuthenticated, error = null) {
+    this.authCallbacks.forEach(cb => {
+      try {
+        cb(isAuthenticated, error);
+      } catch (e) {
+        console.warn("Auth callback error:", e);
+      }
+    });
+  }
+
+  isGoogleAuthenticated() {
+    if (!this.accessToken) return false;
+    const expiry = sessionStorage.getItem("pss_google_token_expiry");
+    if (expiry && Date.now() > Number(expiry)) {
+      this.accessToken = null;
+      sessionStorage.removeItem("pss_google_access_token");
+      sessionStorage.removeItem("pss_google_token_expiry");
+      return false;
+    }
+    return true;
+  }
+
+  tryInitGoogleAuth() {
+    if (this.tokenClient) return true;
+    if (typeof google === "undefined" || !google.accounts || !google.accounts.oauth2) {
+      return false;
+    }
+
+    try {
+      this.tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: this.googleClientId,
+        scope: "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/spreadsheets.readonly",
+        callback: (resp) => {
+          if (resp && resp.error) {
+            console.error("Google OAuth token error:", resp);
+            this.notifyAuthChange(false, resp);
+            return;
+          }
+          if (resp && resp.access_token) {
+            this.accessToken = resp.access_token;
+            sessionStorage.setItem("pss_google_access_token", resp.access_token);
+            if (resp.expires_in) {
+              const expTime = Date.now() + (Number(resp.expires_in) * 1000);
+              sessionStorage.setItem("pss_google_token_expiry", String(expTime));
+            }
+            console.log(" Google OAuth 2.0 token successfully acquired!");
+            this.notifyAuthChange(true);
+          }
+        }
+      });
+      return true;
+    } catch (err) {
+      console.warn("Error initializing Google Identity Services Token Client:", err);
+      return false;
+    }
+  }
+
+  requestGoogleLogin(promptMode = "consent") {
+    if (!this.tokenClient) {
+      const initialized = this.tryInitGoogleAuth();
+      if (!initialized) {
+        throw new Error("Google Identity Services (GIS) පුස්තකාලය තවමත් පූරණය වෙමින් පවතී. කරුණාකර තත්පර කිහිපයකින් නැවත උත්සාහ කරන්න.");
+      }
+    }
+    this.tokenClient.requestAccessToken({ prompt: promptMode });
+  }
+
+  disconnectGoogleAuth() {
+    const currentToken = this.accessToken;
+    this.accessToken = null;
+    sessionStorage.removeItem("pss_google_access_token");
+    sessionStorage.removeItem("pss_google_token_expiry");
+
+    if (currentToken && typeof google !== "undefined" && google.accounts && google.accounts.oauth2) {
+      try {
+        google.accounts.oauth2.revoke(currentToken, () => {
+          console.log(" Google OAuth token revoked.");
+        });
+      } catch (e) {
+        console.warn("Token revocation failed:", e);
+      }
+    }
+
+    this.notifyAuthChange(false);
+  }
+
+  /**
+   * Scan Google Drive folder for files using live Google Drive API v3
+   */
+  async fetchLiveDriveFiles(folderId = this.driveFolderId) {
+    if (!this.isGoogleAuthenticated()) {
+      throw new Error("Google Drive API ඇමතීමට ප්‍රථම Google OAuth සත්‍යාපනය අවශ්‍ය වේ.");
+    }
+
+    const query = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
+    const fields = encodeURIComponent("files(id, name, mimeType, modifiedTime, size, webViewLink, iconLink)");
+    const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=${fields}&orderBy=modifiedTime%20desc`;
+
+    const response = await fetch(url, {
+      headers: {
+        "Authorization": `Bearer ${this.accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.disconnectGoogleAuth();
+        throw new Error("Google OAuth ටෝකනය කල් ඉකුත් වී ඇත. කරුණාකර නැවත Google ගිණුමට සම්බන්ධ වන්න.");
+      }
+      throw new Error(`Google Drive API දෝෂයකි: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.files || [];
+  }
+
+  /**
+   * Fetch spreadsheet cell values using live Google Sheets API v4
+   */
+  async fetchSheetValues(spreadsheetId, range = "A1:Z100") {
+    if (!this.isGoogleAuthenticated()) {
+      throw new Error("Google Sheets API ඇමතීමට ප්‍රථම Google OAuth සත්‍යාපනය අවශ්‍ය වේ.");
+    }
+
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}`;
+    const response = await fetch(url, {
+      headers: {
+        "Authorization": `Bearer ${this.accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Google Sheets API දෝෂයකි: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.values || [];
+  }
+
+  // =========================================================================
+  // Master Dashboard Data Methods
+  // =========================================================================
 
   /**
    * Main fetch method. Returns data promise.
@@ -75,7 +243,6 @@ class PssSheetsService {
       return this.masterData;
     }
 
-    // Merge and return updated data
     return this.masterData;
   }
 

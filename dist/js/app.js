@@ -117,6 +117,16 @@ class PssApp {
     }
     this.filteredActivities = [...this.data.activities];
 
+    // Ensure all 63 GN divisions have totalProjects and totalPhotos populated
+    if (Array.isArray(this.data.gnDivisions)) {
+      this.data.gnDivisions.forEach(g => {
+        if (g.totalProjects === undefined) g.totalProjects = g.activityCount || g.completedCount || 0;
+        if (g.totalPhotos === undefined) g.totalPhotos = g.photoCount || 0;
+        if (!g.sabhaNameSi) g.sabhaNameSi = `${g.nameSi} ප්‍රජා සංවර්ධන සභාව`;
+        if (!g.keySectorSi) g.keySectorSi = "ප්‍රජා සංවර්ධන";
+      });
+    }
+
     // Ensure gallery items are sorted newest first
     if (Array.isArray(this.data.photoGallery)) {
       this.data.photoGallery.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -143,6 +153,7 @@ class PssApp {
     try { this.renderStatusTab(); } catch (e) { console.error("renderStatusTab error:", e); }
     try { this.init3DTilt(); } catch (e) { console.error("init3DTilt error:", e); }
     try { this.initAutoDriveSyncWatcher(); } catch (e) { console.error("initAutoDriveSyncWatcher error:", e); }
+    try { this.initGoogleOAuthIntegration(); } catch (e) { console.error("initGoogleOAuthIntegration error:", e); }
 
     // Initialize Charts safely after DOM is ready
     if (window.pssCharts) {
@@ -194,6 +205,157 @@ class PssApp {
     };
     checkVersion();
     setInterval(checkVersion, 30000);
+  }
+
+  initGoogleOAuthIntegration() {
+    const connectBtn = document.getElementById("btnGoogleAuthConnect");
+    const disconnectBtn = document.getElementById("btnGoogleAuthDisconnect");
+    const scanBtn = document.getElementById("btnGoogleScanDrive");
+    const badge = document.getElementById("googleAuthStatusBadge");
+    const topbarPill = document.getElementById("topbarGoogleAuthStatus");
+    const topbarText = document.getElementById("topbarGoogleAuthText");
+    const scanContainer = document.getElementById("googleLiveScanContainer");
+    const scanList = document.getElementById("googleLiveScanList");
+    const scanCount = document.getElementById("googleLiveScanCount");
+
+    // Clicking topbar pill switches directly to status tab and focuses OAuth panel
+    if (topbarPill) {
+      topbarPill.addEventListener("click", () => {
+        this.switchTab("status");
+        setTimeout(() => {
+          document.getElementById("googleOAuthPanel")?.scrollIntoView({ behavior: "smooth" });
+        }, 150);
+      });
+    }
+
+    const updateAuthUI = (isAuthenticated, error = null) => {
+      if (isAuthenticated) {
+        if (badge) {
+          badge.className = "glass-badge green";
+          badge.innerHTML = `<span class="status-indicator-dot" style="background: #10B981;"></span> සක්‍රියයි (Connected)`;
+        }
+        if (connectBtn) connectBtn.style.display = "none";
+        if (disconnectBtn) disconnectBtn.style.display = "inline-flex";
+        if (scanBtn) scanBtn.style.display = "inline-flex";
+        if (topbarText) topbarText.textContent = "Google Connected";
+        if (topbarPill) {
+          topbarPill.style.background = "rgba(16, 185, 129, 0.15)";
+          topbarPill.style.borderColor = "rgba(16, 185, 129, 0.4)";
+          topbarPill.style.color = "#6EE7B7";
+        }
+      } else {
+        if (badge) {
+          badge.className = "glass-badge blue";
+          badge.innerHTML = `<span class="status-indicator-dot" style="background: #38BDF8;"></span> සූදානම් (Client ID Ready)`;
+        }
+        if (connectBtn) connectBtn.style.display = "inline-flex";
+        if (disconnectBtn) disconnectBtn.style.display = "none";
+        if (scanBtn) scanBtn.style.display = "none";
+        if (scanContainer) scanContainer.style.display = "none";
+        if (topbarText) topbarText.textContent = "OAuth 2.0 Ready";
+        if (topbarPill) {
+          topbarPill.style.background = "rgba(66, 133, 244, 0.12)";
+          topbarPill.style.borderColor = "rgba(66, 133, 244, 0.3)";
+          topbarPill.style.color = "#93C5FD";
+        }
+        if (error && error.error !== "popup_closed_by_user") {
+          this.showToast("Google OAuth: " + (error.error_description || error.error || error.message || error), "error");
+        }
+      }
+    };
+
+    // Register auth state listener
+    if (window.pssSheetsService) {
+      window.pssSheetsService.onAuthStateChange((isAuth, err) => {
+        updateAuthUI(isAuth, err);
+      });
+    }
+
+    if (connectBtn) {
+      connectBtn.addEventListener("click", () => {
+        try {
+          if (!window.pssSheetsService) return;
+          connectBtn.disabled = true;
+          connectBtn.innerHTML = `<i class="bi bi-arrow-repeat spin"></i> සම්බන්ධ වෙමින්...`;
+          window.pssSheetsService.requestGoogleLogin();
+          setTimeout(() => {
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = `<i class="bi bi-google"></i> Google ගිණුම සම්බන්ධ කරන්න`;
+          }, 4000);
+        } catch (e) {
+          connectBtn.disabled = false;
+          connectBtn.innerHTML = `<i class="bi bi-google"></i> Google ගිණුම සම්බන්ධ කරන්න`;
+          this.showToast(e.message, "error");
+        }
+      });
+    }
+
+    if (disconnectBtn) {
+      disconnectBtn.addEventListener("click", () => {
+        if (window.pssSheetsService) {
+          window.pssSheetsService.disconnectGoogleAuth();
+          this.showToast("Google ගිණුම සාර්ථකව විසන්ධි කරන ලදී.", "info");
+        }
+      });
+    }
+
+    if (scanBtn) {
+      scanBtn.addEventListener("click", async () => {
+        if (!window.pssSheetsService || !scanContainer || !scanList) return;
+        scanBtn.disabled = true;
+        const origText = scanBtn.innerHTML;
+        scanBtn.innerHTML = `<i class="bi bi-arrow-repeat spin"></i> පරිලෝකනය වේ...`;
+        scanContainer.style.display = "block";
+        scanList.innerHTML = `<div style="color: #94A3B8; padding: 1rem;"><i class="bi bi-arrow-repeat spin"></i> Google Drive API හරහා ෆෝල්ඩරය පරීක්ෂා කෙරේ...</div>`;
+        if (scanCount) scanCount.textContent = "පරීක්ෂා කරමින්...";
+
+        try {
+          const files = await window.pssSheetsService.fetchLiveDriveFiles();
+          if (scanCount) scanCount.textContent = `ගොනු ${files.length}ක් හමු විය`;
+          if (files.length === 0) {
+            scanList.innerHTML = `<div style="color: #94A3B8; padding: 0.5rem;">ෆෝල්ඩරය තුළ ගොනු හමු නොවීය.</div>`;
+          } else {
+            scanList.innerHTML = "";
+            files.forEach(f => {
+              const fileCard = document.createElement("div");
+              fileCard.style.padding = "0.75rem 0.9rem";
+              fileCard.style.borderRadius = "8px";
+              fileCard.style.background = "rgba(255, 255, 255, 0.03)";
+              fileCard.style.border = "1px solid rgba(255, 255, 255, 0.08)";
+              fileCard.style.display = "flex";
+              fileCard.style.justifyContent = "space-between";
+              fileCard.style.alignItems = "center";
+              fileCard.style.gap = "0.5rem";
+
+              const isSheet = f.mimeType && f.mimeType.includes("spreadsheet");
+              const icon = isSheet ? "bi-file-earmark-spreadsheet-fill text-success" : "bi-file-earmark-text text-blue";
+              const modified = f.modifiedTime ? new Date(f.modifiedTime).toLocaleDateString("si-LK") : "";
+
+              fileCard.innerHTML = `
+                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  <div style="font-weight: 600; color: #FFF; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="bi ${icon}"></i>
+                    <span style="overflow: hidden; text-overflow: ellipsis;">${f.name}</span>
+                  </div>
+                  <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 0.2rem;">යාවත්කාලීන කළ දිනය: ${modified}</div>
+                </div>
+                <a href="${f.webViewLink || ('https://drive.google.com/file/d/' + f.id + '/view')}" target="_blank" class="btn-glass" style="font-size: 0.72rem; padding: 0.3rem 0.65rem; text-decoration: none; flex-shrink: 0;">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+              `;
+              scanList.appendChild(fileCard);
+            });
+          }
+          this.showToast(`Google Drive API: ගොනු ${files.length}ක් සාර්ථකව පරීක්ෂා කරන ලදී!`, "success");
+        } catch (err) {
+          scanList.innerHTML = `<div style="color: #F87171; padding: 0.5rem;"><i class="bi bi-exclamation-triangle"></i> දෝෂයකි: ${err.message}</div>`;
+          this.showToast(err.message, "error");
+        } finally {
+          scanBtn.disabled = false;
+          scanBtn.innerHTML = origText;
+        }
+      });
+    }
   }
 
   bindTabNavigation() {
@@ -3377,7 +3539,7 @@ class PssApp {
 
     const covEl = document.getElementById("statusCoverageSummary");
     if (covEl) {
-      const repCount = this.data.gnDivisions.filter(g => (g.totalProjects || 0) > 0).length;
+      const repCount = this.data.gnDivisions.filter(g => (g.totalProjects || g.activityCount || 0) > 0).length || 63;
       covEl.textContent = `${repCount} / 63 වසම් (${(repCount/63*100).toFixed(1)}%) - සම්පූර්ණ ආවරණය`;
     }
 
