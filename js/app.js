@@ -3911,7 +3911,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     }
 
     if (detailMonthSelect) {
-      detailMonthSelect.innerHTML = '<option value="all">සියලු මාස 11 (සමස්ත වගුව)</option>';
+      detailMonthSelect.innerHTML = '<option value="all">සියලු මාස ' + months.length + ' (සමස්ත වගුව)</option>';
       months.forEach(m => {
         detailMonthSelect.innerHTML += `<option value="${m.monthKey}">${m.monthSi}</option>`;
       });
@@ -4079,53 +4079,62 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
 
   getFilteredAnalyticsData() {
     const f = this.analyticsFilters;
-    const activities = (this.data.activities || []).filter(a => (f.year === "all" || String(a.date || "").startsWith(f.year) || String(a.year) === f.year) && (f.month === "all" || String(a.date || "").slice(0, 7) === f.month) && (f.gn === "all" || a.gnNameSi === f.gn || String(a.gnId) === f.gn) && (f.sector === "all" || a.category === f.sector)); let months = [...(this.data.monthlyStats || [])];
+    const activities = (this.data.activities || []).filter(a => (f.year === "all" || String(a.date || "").startsWith(f.year) || String(a.year) === f.year) && (f.month === "all" || String(a.date || "").slice(0, 7) === f.month) && (f.gn === "all" || a.gnNameSi === f.gn || String(a.gnId) === f.gn) && (f.sector === "all" || a.category === f.sector)); 
+    const _monthMap = {};
+    activities.forEach(a => {
+      const mk = String(a.date || "").slice(0, 7);
+      if (!mk || mk.length < 7) return;
+      if (!_monthMap[mk]) _monthMap[mk] = { monthKey: mk, year: parseInt(mk.slice(0, 4), 10) || 0, count: 0, days: new Set(), divs: new Set(), photos: 0 };
+      _monthMap[mk].count++;
+      if (a.date) _monthMap[mk].days.add(a.date);
+      const dk = a.gnId || a.gnNameSi || a.gnCode;
+      if (dk) _monthMap[mk].divs.add(dk);
+      _monthMap[mk].photos += (a.images ? a.images.length : (a.photos || 0));
+    });
+    const monthlyStats = Object.keys(_monthMap).sort().map(mk => {
+      const _m = _monthMap[mk];
+      return { monthKey: _m.monthKey, year: _m.year, count: _m.count, activeDays: _m.days.size, activeDivisions: _m.divs.size, photos: _m.photos };
+    });
+    const months = monthlyStats;
+
+    const _divMap = {};
+    activities.forEach(a => {
+      const _k = a.gnId || a.gnNameSi || a.gnCode || "";
+      if (!_k) return;
+      if (!_divMap[_k]) _divMap[_k] = { count: 0, days: new Set(), photos: 0 };
+      _divMap[_k].count++;
+      if (a.date) _divMap[_k].days.add(a.date);
+      _divMap[_k].photos += (a.images ? a.images.length : (a.photos || 0));
+    });
     let divisions = [...(this.data.gnDivisions || [])];
-    let categories = [...(this.data.analyticalCategories || [])];
+    if (f.gn !== "all") divisions = divisions.filter(d => d.nameSi === f.gn || String(d.id) === f.gn);
+    divisions = divisions.map(d => {
+      const _s = _divMap[d.id] || _divMap[d.nameSi] || _divMap[d.code] || { count: 0, days: new Set(), photos: 0 };
+      return { ...d, totalProjects: _s.count, activeDays: _s.days.size, photos: _s.photos };
+    });
+    const reportedDivisions = divisions.filter(d => (d.totalProjects || 0) > 0);
+    const topDivisions = [...reportedDivisions].sort((a, b) => (b.totalProjects || 0) - (a.totalProjects || 0));
 
-    // Filter by year
-    if (f.year !== "all") {
-      const y = parseInt(f.year);
-      months = months.filter(m => m.year === y);
-    }
+    const _catMap = {};
+    activities.forEach(a => { const c = a.category || "other"; _catMap[c] = (_catMap[c] || 0) + 1; });
+    let categories = (this.data.analyticalCategories || []).map(c => ({ ...c, count: _catMap[c.id] || 0 }));
+    if (f.sector !== "all") categories = categories.filter(c => c.id === f.sector);
 
-    // Filter by month
-    if (f.month !== "all") {
-      months = months.filter(m => m.monthKey === f.month);
-    }
-
-    // Filter by GN
-    if (f.gn !== "all") {
-      divisions = divisions.filter(d => d.nameSi === f.gn);
-    }
-
-    // Filter by sector
-    if (f.sector !== "all") {
-      categories = categories.filter(c => c.id === f.sector);
-    }
-
-    // Compute aggregate KPIs dynamically from real canonical data
-    const totalActs = f.gn !== "all" 
-      ? divisions.reduce((s, d) => s + (d.totalProjects || 0), 0)
-      : (f.month !== "all" ? months.reduce((s, m) => s + (m.count || 0), 0) : (this.data.activities?.length || 0));
-
-    const totalMasterActiveDays = this.data.overview?.totalActiveDays || new Set((this.data.activities || []).map(a => a.date).filter(Boolean)).size || 0;
-    const activeDays = f.month !== "all"
-      ? months.reduce((s, m) => s + (m.activeDays || 0), 0)
-      : (f.gn !== "all" ? (divisions[0]?.activeDays || 0) : totalMasterActiveDays);
-
-    const _divMap = {}; activities.forEach(a => { const _k = a.gnId || a.gnNameSi || a.gnCode || ""; if (!_k) return; if (!_divMap[_k]) _divMap[_k] = { count: 0, days: new Set(), photos: 0 }; _divMap[_k].count++; if (a.date) _divMap[_k].days.add(a.date); _divMap[_k].photos += (a.images ? a.images.length : (a.photos || 0)); }); divisions = divisions.map(d => { const _s = _divMap[d.id] || _divMap[d.nameSi] || _divMap[d.code] || { count: 0, days: new Set(), photos: 0 }; return { ...d, totalProjects: _s.count, activeDays: _s.days.size, photos: _s.photos }; }); const reportedDivisions = divisions.filter(d => (d.totalProjects || 0) > 0);
-    const activeDivisionsCount = f.gn !== "all" ? divisions.length : (reportedDivisions.length || 51);
-    const coveragePct = f.gn !== "all" 
-      ? ((activeDivisionsCount / 63) * 100).toFixed(1)
-      : ((reportedDivisions.length / 63) * 100).toFixed(1) + "%";
+    const totalActs = activities.length;
+    const activeDays = new Set(activities.map(a => a.date).filter(Boolean)).size;
+    const activeDivisionsCount = reportedDivisions.length;
+    const totalGnCount = (this.data.gnDivisions || []).length || 63;
+    const coveragePct = ((activeDivisionsCount / totalGnCount) * 100).toFixed(1) + "%";
     const avgPerDiv = activeDivisionsCount > 0 ? (totalActs / activeDivisionsCount).toFixed(2) : 0;
     const avgPerDay = activeDays > 0 ? (totalActs / activeDays).toFixed(2) : 0;
 
     return {
       kpis: { totalActs, activeDays, activeDivisionsCount, coveragePct, avgPerDiv, avgPerDay },
+      activities,
       months,
+      monthlyStats,
       divisions,
+      topDivisions,
       categories
     };
   }
@@ -4175,7 +4184,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       months = months.filter(m => m.monthKey === selectedMonthKey);
       if (notesEl) notesEl.innerHTML = `<span class="text-gold">තෝරාගත් මාසය: ${months[0]?.monthSi} (වැඩසටහන් ${months[0]?.count})</span>`;
     } else {
-      if (notesEl) notesEl.textContent = "සම්පූර්ණ මාස 11 ක සංඛ්‍යාලේඛන පහත දැක්වේ";
+      if (notesEl) notesEl.textContent = "සම්පූර්ණ මාස " + ((filtered && filtered.monthlyStats ? filtered.monthlyStats : months).length) + "ක සංඛ්‍යාලේඛන පහත දැක්වේ";
     }
 
     tbody.innerHTML = "";
@@ -4392,14 +4401,24 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
         "2026-06": "2026 ජූනි",
         "2026-07": "2026 ජූලි",
         "2026-08": "2026 අගෝස්තු",
-        "2026-09": "2026 සැප්තැම්බර්"
-      };
+        "2026-09": "2026 සැප්තැම්බර්",
+      "2026-10": "2026 ඔක්තෝබර්",
+      "2026-11": "2026 නොවැම්බර්",
+      "2026-12": "2026 දෙසැම්බර්"
+    };
+    const _siMonths = ["", "ජනවාරි", "පෙබරවාරි", "මාර්තු", "අප්‍රේල්", "මැයි", "ජූනි", "ජූලි", "අගෝස්තු", "සැප්තැම්බර්", "ඔක්තෝබර්", "නොවැම්බර්", "දෙසැම්බර්"];
+    const formatMonthSi = (mk) => {
+      if (monthNamesSi[mk]) return monthNamesSi[mk];
+      const p = String(mk || "").split("-");
+      const mn = p.length === 2 ? parseInt(p[1], 10) : 0;
+      return (mn >= 1 && mn <= 12) ? `${p[0]} ${_siMonths[mn]}` : mk;
+    };
 
       let html = '<div class="an-heatmap-container">';
       Object.keys(monthsMap).forEach(mKey => {
         html += `
           <div class="an-month-col">
-            <div class="an-month-title">${monthNamesSi[mKey] || mKey}</div>
+            <div class="an-month-title">${formatMonthSi(mKey)}</div>
             <div class="an-days-grid">
         `;
         monthsMap[mKey].forEach(day => {
@@ -4433,13 +4452,29 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     if (!topGrid || !tbody) return;
 
     // Diversity Champions (Top 5)
-    const champs = [
-      { name: "හියාචාර උතුර", diversity: 9, acts: 14, desc: "වනජීවී බාධක, සෞඛ්‍ය, කෘෂි, ඩෙංගු, සුබසාධන ඇතුළු ක්ෂේත්‍ර 9ක්" },
-      { name: "නුගදූව", diversity: 7, acts: 15, desc: "පෙරපාසල්, සෞඛ්‍ය, පරිසර, ජීවනෝපාය ඇතුළු ක්ෂේත්‍ර 7ක්" },
-      { name: "ජඹුකැටිය", diversity: 7, acts: 12, desc: "ළමා ක්‍රීඩා, නීති දැනුවත් කිරීම්, යටිතල පහසුකම් ක්ෂේත්‍ර 7ක්" },
-      { name: "බදුන්ගොඩ ජනපදය", diversity: 7, acts: 10, desc: "සමාජ සුබසාධන, සෞඛ්‍ය හා කෘෂිකාර්මික ක්ෂේත්‍ර 7ක්" },
-      { name: "කදුරුගස්හේන", diversity: 7, acts: 10, desc: "කාබනික කෘෂිකර්ම, ගෙවතු වගා, පරිසර ඇතුළු ක්ෂේත්‍ර 7ක්" }
-    ];
+    const filtered = this.getFilteredAnalyticsData();
+    const catNameMap = {};
+    (this.data.analyticalCategories || []).forEach(c => { catNameMap[c.id] = c.nameSi || c.id; });
+    const divStatsMap = {};
+    (filtered.activities || []).forEach(a => {
+      const name = a.gnNameSi || a.gnName || String(a.gnId || "");
+      if (!name) return;
+      if (!divStatsMap[name]) divStatsMap[name] = { name, cats: new Set(), acts: 0 };
+      divStatsMap[name].acts++;
+      if (a.category) divStatsMap[name].cats.add(a.category);
+    });
+    const champs = Object.values(divStatsMap)
+      .map(d => {
+        const catNames = Array.from(d.cats).map(c => catNameMap[c] || c);
+        return {
+          name: d.name,
+          diversity: d.cats.size,
+          acts: d.acts,
+          desc: catNames.slice(0, 4).join(", ") + ` (විවිධ ක්ෂේත්‍ර ${d.cats.size}ක්)`
+        };
+      })
+      .sort((a, b) => b.diversity - a.diversity || b.acts - a.acts)
+      .slice(0, 5);
 
     topGrid.innerHTML = "";
     champs.forEach(c => {
