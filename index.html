@@ -15,9 +15,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
   <!-- Application Stylesheets -->
-  <link rel="stylesheet" href="css/style.css?v=20261120v4" />
-  <link rel="stylesheet" href="css/glassmorphism.css?v=20261120v4" />
-  <link rel="stylesheet" href="css/responsive.css?v=20261120v4" />
+  <link rel="stylesheet" href="css/style.css?v=20261120v5" />
+  <link rel="stylesheet" href="css/glassmorphism.css?v=20261120v5" />
+  <link rel="stylesheet" href="css/responsive.css?v=20261120v5" />
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -59,9 +59,7 @@
     <aside class="app-sidebar">
       <div class="sidebar-brand-box">
         <div class="sidebar-emblem" title="ශ්‍රී ලංකා ජාතික ලාංඡනය">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2L15 8L21 9L16.5 14L18 20L12 17L6 20L7.5 14L3 9L9 8L12 2Z" fill="currentColor"/>
-          </svg>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Emblem_of_Sri_Lanka.svg" alt="ශ්‍රී ලංකා රාජ්‍ය ලාංඡනය" style="width: 36px; height: auto; object-fit: contain;">
         </div>
         <div class="sidebar-brand-text">
           <span class="sidebar-brand-sub">අක්මීමන ප්‍රා.ලේ. කාර්යාලය</span>
@@ -85,24 +83,18 @@
           <span id="sideLatestMonthLabel">2. අලුත්ම මාසයේ ප්‍රගතිය</span>
         </button>
 
-        <!-- 3. වසම් අනුව ප්‍රගතිය -->
-        <button class="nav-tab-btn" data-tab="divisions">
-          <span class="nav-icon-badge"><i class="bi bi-diagram-3"></i></span>
-          <span>3. වසම් අනුව ප්‍රගතිය</span>
-          <span class="tab-badge" id="sideDivisionsBadge">63</span>
-        </button>
 
         <!-- 3. වැඩසටහන් විස්තර -->
         <button class="nav-tab-btn" data-tab="activities">
           <span class="nav-icon-badge"><i class="bi bi-card-checklist"></i></span>
-          <span>4. වැඩසටහන් විස්තර</span>
+          <span>3. වැඩසටහන් විස්තර</span>
           <span class="tab-badge" id="sideActivitiesBadge">494</span>
         </button>
 
         <!-- 4. ප්‍රගති විශ්ලේෂණය -->
         <button class="nav-tab-btn" data-tab="analytics">
           <span class="nav-icon-badge"><i class="bi bi-bar-chart-steps"></i></span>
-          <span>5. ප්‍රගති විශ්ලේෂණය</span>
+          <span>4. ප්‍රගති විශ්ලේෂණය</span>
         </button>
 
         <div class="sidebar-nav-label" style="margin-top: 0.8rem;">ලේඛන හා පද්ධතිය</div>
@@ -110,13 +102,13 @@
         <!-- 5. වාර්තා හා බාගත කිරීම් -->
         <button class="nav-tab-btn" data-tab="reports">
           <span class="nav-icon-badge"><i class="bi bi-file-earmark-arrow-down"></i></span>
-          <span>6. වාර්තා හා බාගත කිරීම්</span>
+          <span>5. වාර්තා හා බාගත කිරීම්</span>
         </button>
 
         <!-- 6. දත්ත යාවත්කාලීන තත්ත්වය -->
         <button class="nav-tab-btn" data-tab="status">
           <span class="nav-icon-badge"><i class="bi bi-arrow-repeat"></i></span>
-          <span>7. දත්ත යාවත්කාලීන තත්ත්වය</span>
+          <span>6. දත්ත යාවත්කාලීන තත්ත්වය</span>
         </button>
       </nav>
 
@@ -350,151 +342,7 @@
         </div>
       </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 3: වසම් අනුව ප්‍රගතිය (GN DIVISION PROGRESS & GALLERY) -->
-        <!-- ========================================== -->
-        <section class="tab-view" id="view-divisions">
-          <div class="tab-header-box">
-            <div class="tab-title-wrap">
-              <span class="tab-kicker"><i class="bi bi-diagram-3"></i> ග්‍රාම නිලධාරී වසම් 63 හි ප්‍රගති නාමාවලිය</span>
-              <h1 class="tab-main-heading">වසම් අනුව සංවර්ධන වැඩසටහන් හා ගැලරිය</h1>
-              <p class="tab-main-subtext">අක්මීමන කොට්ඨාසයේ සියලුම ග්‍රාම නිලධාරී වසම් 63 හි ප්‍රජා සංවර්ධන සභා වැඩසටහන්, ප්‍රගතිය සහ ඡායාරූප.</p>
-            </div>
-            <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
-              <!-- Search inside GN Divisions -->
-              <div class="search-input-wrap" style="width: 240px;">
-                <i class="bi bi-search"></i>
-                <input type="text" id="gnDivisionSearchInput" class="glass-input" placeholder="වසමේ නමින් සොයන්න..." style="width: 100%; border-radius: 999px;" />
-              </div>
-              <!-- Quick Jump Dropdown -->
-              <div style="display: flex; align-items: center; gap: 0.4rem;">
-                <select id="tab3GnJumpDropdown" class="glass-select" style="min-width: 260px; border-radius: 999px; font-size: 0.86rem; padding: 0.5rem 1rem;">
-                  <option value="">🏛️ වසමක් තෝරා ක්ෂණිකව පිවිසෙන්න...</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- DEDICATED DIVISION ACTIVITY VIEW (Shown when a division card is selected) -->
-          <div id="divisionDedicatedView" class="division-dedicated-container" style="display: none; margin-bottom: 2.5rem;">
-            <!-- Back button & Top Bar -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 1rem;">
-              <button id="btnBackToAllDivisions" class="btn-glass" style="padding: 0.5rem 1.2rem; font-weight: 700;">
-                <i class="bi bi-arrow-left"></i> සියලු වසම් 63 වෙත ආපසු
-              </button>
-              <div style="display: flex; gap: 0.8rem;">
-                <button id="btnPrintDedicatedDivisionReport" class="btn-gold" style="padding: 0.5rem 1.2rem; font-size: 0.86rem;">
-                  <i class="bi bi-printer"></i> මෙම වසමේ සම්පූර්ණ වාර්තාව (PDF / Print)
-                </button>
-              </div>
-            </div>
-
-            <!-- Dedicated Division Summary Glass Banner -->
-            <div class="hero-banner-card glass-panel" style="margin-bottom: 1.8rem; border-color: rgba(212, 175, 55, 0.4);">
-              <div class="hero-content">
-                <div class="hero-text-col">
-                  <div class="hero-tag">
-                    <span class="pulse-dot"></span>
-                    <span id="dedicatedDivisionBadgeText">තෝරාගත් ග්‍රාම නිලධාරී වසම</span>
-                  </div>
-                  <h2 class="hero-title" style="font-size: 1.85rem; margin-bottom: 0.4rem;">
-                    <span class="blue-text-gradient" id="dedicatedDivisionName">වසමේ නම</span>
-                  </h2>
-                  <div style="font-size: 1rem; color: #CBD5E1; margin-bottom: 1rem;" id="dedicatedDivisionSabha">
-                    ප්‍රජා සංවර්ධන සභාව
-                  </div>
-                  <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem;">
-                    <span class="glass-badge blue" id="dedicatedDivisionSector"><i class="bi bi-tag-fill"></i> ප්‍රමුඛ ක්ෂේත්‍රය</span>
-                    <span class="glass-badge gold" id="dedicatedDivisionStatus"><i class="bi bi-check-circle"></i> සක්‍රියයි</span>
-                  </div>
-                </div>
-
-                <!-- Division Progress Metric Box -->
-                <div class="hero-progress-box">
-                  <div class="hp-header">
-                    <span class="hp-title">වසමේ සමස්ත ප්‍රගතිය</span>
-                    <span class="hp-percent blue-text-gradient" id="dedicatedDivisionProgressVal">100%</span>
-                  </div>
-                  <div class="progress-track" style="margin-bottom: 1rem;">
-                    <div class="progress-fill shimmer-bar" id="dedicatedDivisionProgressFill" style="width: 100%;"></div>
-                  </div>
-                  <div class="hp-meta-grid" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="hp-meta-item">
-                      <div class="hp-meta-label">මුළු වැඩසටහන්</div>
-                      <div class="hp-meta-val" id="dedicatedDivisionTotalAct">3</div>
-                    </div>
-                    <div class="hp-meta-item">
-                      <div class="hp-meta-label">සක්‍රිය දින ගණන</div>
-                      <div class="hp-meta-val" id="dedicatedDivisionActiveDays">2</div>
-                    </div>
-                    <div class="hp-meta-item">
-                      <div class="hp-meta-label">සත්‍ය ඡායාරූප</div>
-                      <div class="hp-meta-val" id="dedicatedDivisionPhotos">8</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Dedicated Activities Heading -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
-              <h3 style="font-size: 1.25rem; font-weight: 800; color: #FFF; display: flex; align-items: center; gap: 0.6rem;">
-                <i class="bi bi-collection-fill text-blue"></i> <span id="dedicatedDivisionActivitiesHeading">මෙම වසමේ වැඩසටහන් හා ඡායාරූප</span>
-              </h3>
-              <span class="glass-badge blue" id="dedicatedDivisionActCountBadge">වැඩසටහන් 3ක්</span>
-            </div>
-
-            <!-- Grid of Activities belonging to this division -->
-            <div class="activities-grid" id="dedicatedDivisionActivitiesGrid">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-          <!-- ALL 63 DIVISIONS CONTAINER (Default View) -->
-          <div id="divisionAllListView">
-            <!-- Sub-tabs bar for Divisions -->
-            <div class="subtabs-bar" data-section="divisions">
-              <button class="subtab-btn active" data-subtab="cards"><i class="bi bi-grid"></i> වසම් 63 කාඩ්පත් දසුන</button>
-              <button class="subtab-btn" data-subtab="table"><i class="bi bi-table"></i> සංසන්දනාත්මක වගු දසුන</button>
-            </div>
-
-            <!-- Divisions Subtab 1: Cards Grid (All 63 Divisions) -->
-            <div class="subtab-content active" data-section="divisions" data-content="cards">
-              <div style="margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 0.88rem; color: #94A3B8;">
-                  <i class="bi bi-info-circle text-blue"></i> කිසියම් වසමක් තෝරා එහි සවිස්තර වැඩසටහන් හා ඡායාරූප නැරඹීමට කාඩ්පත මත ක්ලික් කරන්න.
-                </span>
-                <span class="glass-badge gold" id="gnDivisionsCardCounter">වසම් 63ම ඇතුළත්ය</span>
-              </div>
-              <div class="division-cards-grid" id="divisionCardsGrid">
-                <!-- Dynamically populated 63 cards -->
-              </div>
-            </div>
-
-            <!-- Divisions Subtab 2: Table -->
-            <div class="subtab-content" data-section="divisions" data-content="table">
-              <div class="table-card glass-panel">
-                <table class="comparison-table">
-                  <thead>
-                    <tr>
-                      <th>ග්‍රාම නිලධාරී වසම (වසම් 63)</th>
-                      <th>ප්‍රජා සංවර්ධන සභාව</th>
-                      <th>ප්‍රමුඛ ක්ෂේත්‍රය</th>
-                      <th style="text-align: center;">මුළු වැඩසටහන්</th>
-                      <th style="text-align: center;">සක්‍රිය දින ගණන</th>
-                      <th style="text-align: center;">ඡායාරූප ගණන</th>
-                      <th style="text-align: center;">තත්ත්වය</th>
-                      <th style="text-align: center;">ක්‍රියාමාර්ග</th>
-                    </tr>
-                  </thead>
-                  <tbody id="gnComparisonTableBody">
-                    <!-- Dynamically populated -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
+       
 
         <!-- ========================================== -->
         <!-- TAB 4: වැඩසටහන් විස්තර (PROGRAMMES DIRECTORY & DIVISION SHOWCASE) -->
@@ -2059,9 +1907,9 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/data.js?v=20261120v4"></script>
-  <script src="js/sheets-service.js?v=20261120v4"></script>
-  <script src="js/charts.js?v=20261120v4"></script>
-  <script src="js/app.js?v=20261120v4"></script>
+  <script src="js/data.js?v=20261120v5"></script>
+  <script src="js/sheets-service.js?v=20261120v5"></script>
+  <script src="js/charts.js?v=20261120v5"></script>
+  <script src="js/app.js?v=20261120v5"></script>
 </body>
 </html>
