@@ -41,7 +41,7 @@ class PssApp {
 
     // Sub-tab states
     this.activeSubtabs = {
-      monthly: "chart",
+      /* monthly removed */
       divisions: "cards",
       activities: "all",
       gallery: "all",
@@ -57,13 +57,13 @@ class PssApp {
     this.currentGalleryItems = [];
 
     // Tab 4: Activities Division Showcase State (Division-First by Default)
-    this.activitiesViewMode = "division";
+    this.activitiesViewMode = "flat";
     this.selectedActivitiesGnIndex = 0;
 
     // Tab titles map for breadcrumbs and header (7 Authentic Tabs)
     this.tabTitles = {
       overview: "සමස්ත ප්‍රගතිය",
-      monthly: "මාසික ප්‍රගතිය",
+      /* monthly removed */
       divisions: "වසම් අනුව ප්‍රගතිය",
       activities: "වැඩසටහන් විස්තර",
       analytics: "ප්‍රගති විශ්ලේෂණය",
@@ -139,10 +139,10 @@ class PssApp {
     this.bindGalleryAndSlideshowEvents();
     this.initClock();
 
-    // Render all dashboard DOM sections first (Ensures data is ALWAYS visible even if charts fail)
+    try { this.syncComputedMetrics(); } catch (e) { console.error("syncComputedMetrics error:", e); }
     try { this.renderKPIs(); } catch (e) { console.error("renderKPIs error:", e); }
     try { this.renderOverviewTab(); } catch (e) { console.error("renderOverviewTab error:", e); }
-    try { this.renderMonthlyTab(); } catch (e) { console.error("renderMonthlyTab error:", e); }
+    // monthly tab removed
     try { this.renderDivisionsTab(); } catch (e) { console.error("renderDivisionsTab error:", e); }
     try { this.populateFilterDropdowns(); } catch (e) { console.error("populateFilterDropdowns error:", e); }
     try { this.renderCategoryPills(); } catch (e) { console.error("renderCategoryPills error:", e); }
@@ -166,7 +166,7 @@ class PssApp {
 
     // Check initial hash in URL
     const hash = window.location.hash.replace("#", "");
-    if (hash && this.tabTitles[hash]) {
+    if (hash === "monthly") { this.switchTab("monthly"); } else if (hash && this.tabTitles[hash]) {
       this.switchTab(hash);
     } else {
       this.switchTab("overview");
@@ -175,7 +175,7 @@ class PssApp {
     // Listen for hash changes so URL links, bookmarks, and browser navigation switch tabs automatically
     window.addEventListener("hashchange", () => {
       const h = window.location.hash.replace("#", "");
-      if (h && this.tabTitles[h] && this.activeTab !== h) {
+      if (h === "monthly") { this.switchTab("monthly"); } else if (h && this.tabTitles[h] && this.activeTab !== h) {
         this.switchTab(h);
       }
     });
@@ -399,7 +399,7 @@ class PssApp {
   }
 
   switchTab(tabId) {
-    if (!this.tabTitles[tabId]) tabId = "overview";
+    if (tabId === "monthly") { this.switchTab("analytics"); const mb = document.querySelector('#view-analytics .subtabs-bar[data-section="analytics"] .subtab-btn[data-subtab="monthly"]'); if (mb) mb.click(); return; } if (!this.tabTitles[tabId]) tabId = "overview";
     this.activeTab = tabId;
 
     // Update URL hash without jump
@@ -1166,14 +1166,14 @@ class PssApp {
     setInterval(updateTime, 1000);
   }
 
-  renderKPIs() {
+  getUniqueActiveDays(activities = []) { if (!Array.isArray(activities) || !activities.length) return 0; return new Set(activities.map(a => (a?.date || a?.activityDate || "").toString().trim()).filter(d => d && d !== "-" && d !== "N/A" && d !== "null" && d !== "undefined")).size; } syncComputedMetrics() { const acts = this.data.activities || []; const uniqueDays = this.getUniqueActiveDays(acts); const totalPhotos = this.data.photoGallery?.length || acts.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0); if (!this.data.overview) this.data.overview = {}; this.data.overview.totalActivities = acts.length; this.data.overview.activeDays = uniqueDays; this.data.overview.totalActiveDays = uniqueDays; this.data.overview.totalPhotographs = totalPhotos; if (Array.isArray(this.data.gnDivisions)) { this.data.gnDivisions.forEach(g => { const gActs = acts.filter(a => (g.nameSi && a.gnNameSi === g.nameSi) || (g.name && (a.gnDivision === g.name || a.gnName === g.name))); if (gActs.length > 0 || !g.activeDays) g.activeDays = this.getUniqueActiveDays(gActs); }); this.data.overview.reportingGns = this.data.gnDivisions.filter(g => (g.totalProjects || g.activityCount || 0) > 0).length; } const mList = this.data.monthlyStats || this.data.monthlyProgress || []; mList.forEach(m => { if (!m.activeDays && m.month) { const mActs = acts.filter(a => (a.month || "").includes(m.month) || (a.date || "").startsWith(m.month)); if (mActs.length > 0) m.activeDays = this.getUniqueActiveDays(mActs); } }); } renderKPIs() {
     const sec = this.data.overview || this.data.secretariatInfo || {};
 
-    const totalAct = sec.totalActivities || this.data.activities?.length || 381;
+    const totalAct = sec.totalActivities || this.data.activities?.length || 0;
     const repGns = sec.reportingGNs || sec.reportingGnDivisions || 63;
     const totalGns = sec.totalGNs || sec.totalGNDivisions || 63;
-    const actDays = sec.activeDays || sec.totalActiveDays || 178;
-    const totPhotos = sec.totalPhotographs || sec.totalPhotos || this.data.photoGallery?.length || 1374;
+    const actDays = sec.activeDays || sec.totalActiveDays || this.getUniqueActiveDays(this.data.activities);
+    const totPhotos = sec.totalPhotographs || sec.totalPhotos || this.data.photoGallery?.length || 0;
 
     // Total Activities
     const totalActEl = document.getElementById("kpiTotalActivities");
@@ -1207,7 +1207,7 @@ class PssApp {
 
     // Sidebar counts
     const sideActCount = document.getElementById("sideActivitiesBadge");
-    if (sideActCount) sideActCount.textContent = totalAct;
+    if (sideActCount) sideActCount.textContent = totalAct; const flatBtnBadge = document.querySelector("#btnActivitiesFlatMode .badge, #btnActivitiesFlatMode span"); if (flatBtnBadge) flatBtnBadge.textContent = totalAct;
 
     const sideDivCount = document.getElementById("sideDivisionsBadge");
     if (sideDivCount) sideDivCount.textContent = totalGns;
@@ -1246,10 +1246,10 @@ class PssApp {
     });
     const topGns = Object.entries(gnCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
 
-    const actCount = latestMonth.count || latestMonth.totalProjects || mActs.length || 47;
-    const gnCount = latestMonth.reportingGns || latestMonth.activeGNCount || Object.keys(gnCounts).length || 26;
-    const photoCount = latestMonth.photos || mActs.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0) || 146;
-    const daysCount = latestMonth.activeDays || 21;
+    const actCount = latestMonth.count || latestMonth.totalProjects || mActs.length || 0;
+    const gnCount = latestMonth.reportingGns || latestMonth.activeGNCount || Object.keys(gnCounts).length || 0;
+    const photoCount = latestMonth.photos || mActs.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0) || 0;
+    const daysCount = latestMonth.activeDays || this.getUniqueActiveDays(mActs);
 
     container.innerHTML = `
       <div style="background: rgba(15, 23, 44, 0.7); border-radius: 14px; padding: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.08);">
@@ -3535,7 +3535,7 @@ class PssApp {
     if (totalEl) totalEl.textContent = `${this.data.activities.length} වැඩසටහන්`;
 
     const dupEl = document.getElementById("statusDuplicatesCount");
-    if (dupEl) dupEl.textContent = `අනුපිටපත් ${summary.duplicatesMerged || 121}ක් ඉවත් කරන ලදී (Raw: ${summary.totalRawActivities || 502})`;
+    if (dupEl) dupEl.textContent = `අනුපිටපත් ${summary.duplicatesMerged || 0}ක් ඉවත් කරන ලදී (Raw: ${summary.totalRawActivities || this.data.activities.length})`;
 
     const covEl = document.getElementById("statusCoverageSummary");
     if (covEl) {
@@ -4406,9 +4406,9 @@ class PssApp {
     // Compute aggregate KPIs dynamically from real canonical data
     const totalActs = f.gn !== "all" 
       ? divisions.reduce((s, d) => s + (d.totalProjects || 0), 0)
-      : (f.month !== "all" ? months.reduce((s, m) => s + (m.count || 0), 0) : (this.data.activities?.length || 287));
+      : (f.month !== "all" ? months.reduce((s, m) => s + (m.count || 0), 0) : (this.data.activities?.length || 0));
 
-    const totalMasterActiveDays = this.data.overview?.totalActiveDays || new Set((this.data.activities || []).map(a => a.date).filter(Boolean)).size || 115;
+    const totalMasterActiveDays = this.data.overview?.totalActiveDays || new Set((this.data.activities || []).map(a => a.date).filter(Boolean)).size || 0;
     const activeDays = f.month !== "all"
       ? months.reduce((s, m) => s + (m.activeDays || 0), 0)
       : (f.gn !== "all" ? (divisions[0]?.activeDays || 0) : totalMasterActiveDays);
