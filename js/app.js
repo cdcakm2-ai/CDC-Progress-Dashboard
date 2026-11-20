@@ -1213,110 +1213,9 @@ class PssApp {
     if (sideDivCount) sideDivCount.textContent = totalGns;
   }
 
-  renderOverviewTab() {
-    const container = document.getElementById("latestMonthProgressContainer") || document.getElementById("overviewRecentList");
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    const months = (this.data.monthlyProgress || this.data.monthlyStats || []).filter(m => (m.count || m.totalProjects || 0) > 0);
-    // Select the latest active month with reporting activities
-    let latestMonth = months.length > 0 ? months[months.length - 1] : null;
-    const sepMonth = months.find(m => (m.monthKey === '2026-09' || m.month === '2026-09'));
-    if (sepMonth && (latestMonth.count || 0) < 5) {
-      latestMonth = sepMonth; // Focus on September 2026 which has complete division-level coverage
-    }
-
-    if (!latestMonth) {
-      container.innerHTML = "<div style='color: #94A3B8; text-align: center; padding: 1.5rem;'>දත්ත තවමත් පූරණය වෙමින් පවතී...</div>";
-      return;
-    }
-
-    // Filter activities for this month
-    const mActs = (this.data.activities || []).filter(a => {
-      const d = a.date || "";
-      return d.startsWith(latestMonth.monthKey || latestMonth.month);
-    });
-
-    // Group activities by GN division to highlight top active divisions
-    const gnCounts = {};
-    mActs.forEach(a => {
-      const gn = a.gnNameSi || "අක්මීමන";
-      gnCounts[gn] = (gnCounts[gn] || 0) + 1;
-    });
-    const topGns = Object.entries(gnCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
-
-    const actCount = latestMonth.count || latestMonth.totalProjects || mActs.length || 0;
-    const gnCount = latestMonth.reportingGns || latestMonth.activeGNCount || Object.keys(gnCounts).length || 0;
-    const photoCount = latestMonth.photos || mActs.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0) || 0;
-    const daysCount = latestMonth.activeDays || this.getUniqueActiveDays(mActs);
-
-    container.innerHTML = `
-      <div style="background: rgba(15, 23, 44, 0.7); border-radius: 14px; padding: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.08);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; flex-wrap: wrap; gap: 0.5rem;">
-          <div>
-            <span style="font-size: 0.8rem; color: #94A3B8;">අවසන් වරට වාර්තා වූ ප්‍රගති සමාලෝචනය</span>
-            <h3 style="font-size: 1.35rem; font-weight: 800; color: #FFFFFF; margin: 0.2rem 0 0 0;">
-              <span class="blue-text-gradient">${latestMonth.monthSi}</span>
-            </h3>
-          </div>
-          <span class="glass-badge green" style="font-size: 0.78rem; padding: 0.35rem 0.8rem;">
-            <i class="bi bi-check-circle-fill"></i> 100% ප්‍රගතිය සම්පූර්ණයි
-          </span>
-        </div>
-
-        <!-- 4 Mini KPI Tiles for Latest Month -->
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem; margin-bottom: 1.1rem;" class="latest-month-mini-kpis">
-          <div style="background: rgba(255, 255, 255, 0.03); border-radius: 10px; padding: 0.75rem; border-left: 3px solid #38BDF8;">
-            <div style="font-size: 0.72rem; color: #94A3B8; font-weight: 600;">වැඩසටහන්</div>
-            <div style="font-size: 1.45rem; font-weight: 800; color: #FFFFFF; line-height: 1.2;">${actCount}</div>
-            <div style="font-size: 0.68rem; color: #34D399;"><i class="bi bi-check2"></i> සියල්ල නිමයි</div>
-          </div>
-          <div style="background: rgba(255, 255, 255, 0.03); border-radius: 10px; padding: 0.75rem; border-left: 3px solid #34D399;">
-            <div style="font-size: 0.72rem; color: #94A3B8; font-weight: 600;">සක්‍රීය වසම්</div>
-            <div style="font-size: 1.45rem; font-weight: 800; color: #FFFFFF; line-height: 1.2;">${gnCount}</div>
-            <div style="font-size: 0.68rem; color: #94A3B8;">වසම් 63 න්</div>
-          </div>
-          <div style="background: rgba(255, 255, 255, 0.03); border-radius: 10px; padding: 0.75rem; border-left: 3px solid #A78BFA;">
-            <div style="font-size: 0.72rem; color: #94A3B8; font-weight: 600;">ක්ෂේත්‍ර ඡායාරූප</div>
-            <div style="font-size: 1.45rem; font-weight: 800; color: #FFFFFF; line-height: 1.2;">${photoCount}</div>
-            <div style="font-size: 0.68rem; color: #A78BFA;"><i class="bi bi-camera-fill"></i> Drive සත්‍යාපිත</div>
-          </div>
-          <div style="background: rgba(255, 255, 255, 0.03); border-radius: 10px; padding: 0.75rem; border-left: 3px solid #FBBF24;">
-            <div style="font-size: 0.72rem; color: #94A3B8; font-weight: 600;">ක්‍රියාකාරී දින</div>
-            <div style="font-size: 1.45rem; font-weight: 800; color: #FFFFFF; line-height: 1.2;">${daysCount}</div>
-            <div style="font-size: 0.68rem; color: #FBBF24;">ක්ෂේත්‍ර දිනයන්</div>
-          </div>
-        </div>
-
-        <!-- Month Completion Progress Track -->
-        <div style="margin-bottom: 0.9rem;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 0.35rem;">
-            <span style="color: #CBD5E1;"><i class="bi bi-lightning-charge-fill text-gold"></i> මාසික ඉලක්ක සපුරාගැනීමේ වේගය</span>
-            <span style="font-weight: 700; color: #34D399;">100% සම්පූර්ණයි</span>
-          </div>
-          <div style="height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; overflow: hidden;">
-            <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #38BDF8 0%, #34D399 100%); border-radius: 6px;"></div>
-          </div>
-        </div>
-
-        <!-- Top Divisions in Latest Month -->
-        <div>
-          <div style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
-            <i class="bi bi-trophy-fill text-gold"></i> මෙම මාසයේ ප්‍රමුඛ වාර්තාකරණ වසම්
-          </div>
-          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            ${topGns.map(([gn, cnt]) => `
-              <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.35rem 0.75rem; border-radius: 10px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem;">
-                <span style="color: #FFFFFF; font-weight: 600;">${gn}</span>
-                <span class="glass-badge blue" style="font-size: 0.72rem; padding: 0.1rem 0.45rem;">${cnt} වැඩසටහන්</span>
-              </div>
-            `).join("")}
-          </div>
-        </div>
-      </div>
-    `;
-  }
+renderOverviewTab() { this.renderLatestMonthProgress(); }
+renderLatestMonthProgress() { const container = document.getElementById("latestMonthProgressContainer") || document.getElementById("overviewRecentList"); if (!container) return; const acts = this.data.activities || []; const mSet = new Set(); acts.forEach(a => { const d = (a.date || "").trim(); if (/^\d{4}-\d{2}/.test(d)) mSet.add(d.slice(0, 7)); }); const months = Array.from(mSet).sort(); const latestKey = months.length ? months[months.length - 1] : null; if (!latestKey) { container.innerHTML = '<div style="color:#94A3B8;text-align:center;padding:1.5rem;">නවතම මාසයේ දත්ත හමු නොවීය...</div>'; return; } const siM = {"01":"ජනවාරි","02":"පෙබරවාරි","03":"මාර්තු","04":"අප්‍රේල්","05":"මැයි","06":"ජූනි","07":"ජූලි","08":"අගෝස්තු","09":"සැප්තැම්බර්","10":"ඔක්තෝම්බර්","11":"නොවැම්බර්","12":"දෙසැම්බර්"}; const parts = latestKey.split("-"); const monthLabel = parts[0] + " " + (siM[parts[1]] || parts[1]); const mActs = acts.filter(a => (a.date || "").trim().startsWith(latestKey)); const gnCounts = {}; const secCounts = {}; let photoCount = 0; mActs.forEach(a => { const gn = a.gnNameSi || a.gnDivision || "වෙනත්"; gnCounts[gn] = (gnCounts[gn] || 0) + 1; const sec = a.sectorSi || a.sector || a.categorySi || a.category || "වෙනත්"; secCounts[sec] = (secCounts[sec] || 0) + 1; if (Array.isArray(a.images)) photoCount += a.images.length; else if (Array.isArray(a.photos)) photoCount += a.photos.length; }); const actCount = mActs.length; const daysCount = this.getUniqueActiveDays(mActs); const gnCount = Object.keys(gnCounts).length; const sortedSec = Object.entries(secCounts).sort((a, b) => b[1] - a[1]); const sortedGn = Object.entries(gnCounts).sort((a, b) => b[1] - a[1]); const sortedActs = mActs.slice().sort((a, b) => (b.date || "").localeCompare(a.date || "")); const secHtml = sortedSec.map(([s, c]) => '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;"><span style="color:#FFFFFF;font-weight:600;">' + s + '</span><span class="glass-badge blue" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + c + '</span></div>').join(""); const gnHtml = sortedGn.map(([g, c]) => '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;"><span style="color:#FFFFFF;font-weight:600;">' + g + '</span><span class="glass-badge green" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + c + '</span></div>').join(""); const listHtml = sortedActs.map(a => '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:0.65rem 0.85rem;"><div style="font-size:0.88rem;font-weight:600;color:#FFFFFF;margin-bottom:0.2rem;">' + (a.titleSi || a.title || "") + '</div><div style="font-size:0.76rem;color:#94A3B8;display:flex;gap:0.75rem;flex-wrap:wrap;"><span><i class="bi bi-calendar3"></i> ' + (a.date || "") + '</span><span><i class="bi bi-geo-alt"></i> ' + (a.gnNameSi || a.gnDivision || "-") + '</span><span><i class="bi bi-tag"></i> ' + (a.sectorSi || a.sector || a.categorySi || "-") + '</span></div></div>').join(""); container.innerHTML = '<div style="background:rgba(15,23,44,0.7);border-radius:14px;padding:1.2rem;border:1px solid rgba(255,255,255,0.08);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;"><div><span style="font-size:0.8rem;color:#94A3B8;">නවතම සක්‍රීය මාසයේ ප්‍රගතිය</span><h3 style="font-size:1.35rem;font-weight:800;color:#FFFFFF;margin:0.2rem 0 0 0;"><span class="blue-text-gradient">' + monthLabel + '</span></h3></div><span class="glass-badge green" style="font-size:0.78rem;padding:0.35rem 0.8rem;"><i class="bi bi-check-circle-fill"></i> ස්වයංක්‍රීයව යාවත්කාලීන වේ</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.7rem;margin-bottom:1.1rem;" class="latest-month-mini-kpis"><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #38BDF8;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">වැඩසටහන් ගණන</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + actCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #FBBF24;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">සක්‍රීය දින</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + daysCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #34D399;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">වාර්තා කළ වසම්</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + gnCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #A78BFA;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">ඡායාරූප</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + photoCount + '</div></div></div><div style="margin-bottom:1.1rem;"><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-pie-chart-fill text-info"></i> ක්ෂේත්‍ර අනුව බෙදීම</div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + secHtml + '</div></div><div style="margin-bottom:1.1rem;"><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-geo-alt-fill text-success"></i> වසම් අනුව බෙදීම</div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + gnHtml + '</div></div><div><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-list-check text-gold"></i> ' + monthLabel + ' වැඩසටහන් ලැයිස්තුව (' + actCount + ')</div><div style="display:flex;flex-direction:column;gap:0.5rem;max-height:420px;overflow-y:auto;padding-right:0.25rem;">' + listHtml + '</div></div></div>'; }
+  
 
   renderMonthlyTab() {
     const tbody = document.getElementById("monthlyTableBody");
@@ -2357,16 +2256,7 @@ class PssApp {
             </p>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem;">
-            <div style="display: none;">
-              <div style="font-size: 0.74rem; font-weight: 700; color: #38BDF8; margin-bottom: 0.3rem;">
-                <i class="bi bi-bullseye"></i> වැඩසටහනේ අරමුණ
-              </div>
-              <div style="font-size: 0.88rem; color: #CBD5E1; line-height: 1.5;">
-                ${act.purposeSi || act.titleSi}
-              </div>
-            </div>
-
+          <div style="display: grid; grid-template-columns: 1fr; gap: 0.8rem; margin-bottom: 1rem;">
             <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 0.9rem; border-left: 3px solid #34D399;">
               <div style="font-size: 0.74rem; font-weight: 700; color: #34D399; margin-bottom: 0.3rem;">
                 <i class="bi bi-award-fill"></i> ලබාගත් ප්‍රතිඵල හා ප්‍රජා දායකත්වය
