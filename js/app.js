@@ -63,7 +63,7 @@ class PssApp {
     // Tab titles map for breadcrumbs and header (7 Authentic Tabs)
     this.tabTitles = {
       overview: "සමස්ත ප්‍රගතිය",
-      /* monthly removed */
+      "latest-month": "අලුත්ම මාසයේ ප්‍රගතිය",
       divisions: "වසම් අනුව ප්‍රගතිය",
       activities: "වැඩසටහන් විස්තර",
       analytics: "ප්‍රගති විශ්ලේෂණය",
@@ -432,7 +432,7 @@ class PssApp {
     if (tabId === "analytics") {
       this.updateAnalyticsView();
     }
-    if (tabId === "activities") {
+    if (tabId === "latest-month") { this.renderLatestMonthProgress(); } if (tabId === "activities") {
       this.renderActivitiesTab();
     }
 
@@ -1166,7 +1166,7 @@ class PssApp {
     setInterval(updateTime, 1000);
   }
 
-  getUniqueActiveDays(activities = []) { if (!Array.isArray(activities) || !activities.length) return 0; return new Set(activities.map(a => (a?.date || a?.activityDate || "").toString().trim()).filter(d => d && d !== "-" && d !== "N/A" && d !== "null" && d !== "undefined")).size; } syncComputedMetrics() { const acts = this.data.activities || []; const uniqueDays = this.getUniqueActiveDays(acts); const totalPhotos = this.data.photoGallery?.length || acts.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0); if (!this.data.overview) this.data.overview = {}; this.data.overview.totalActivities = acts.length; this.data.overview.activeDays = uniqueDays; this.data.overview.totalActiveDays = uniqueDays; this.data.overview.totalPhotographs = totalPhotos; if (Array.isArray(this.data.gnDivisions)) { this.data.gnDivisions.forEach(g => { const gActs = acts.filter(a => (g.nameSi && a.gnNameSi === g.nameSi) || (g.name && (a.gnDivision === g.name || a.gnName === g.name))); if (gActs.length > 0 || !g.activeDays) g.activeDays = this.getUniqueActiveDays(gActs); }); this.data.overview.reportingGns = this.data.gnDivisions.filter(g => (g.totalProjects || g.activityCount || 0) > 0).length; } const mList = this.data.monthlyStats || this.data.monthlyProgress || []; mList.forEach(m => { if (!m.activeDays && m.month) { const mActs = acts.filter(a => (a.month || "").includes(m.month) || (a.date || "").startsWith(m.month)); if (mActs.length > 0) m.activeDays = this.getUniqueActiveDays(mActs); } }); } renderKPIs() {
+  getUniqueActiveDays(activities = []) { if (!Array.isArray(activities) || !activities.length) return 0; return new Set(activities.map(a => (a?.date || a?.activityDate || "").toString().trim()).filter(d => d && d !== "-" && d !== "N/A" && d !== "null" && d !== "undefined")).size; } classifyActivityCategory(activity) { const a = activity || {}; const cats = this.data?.categories || this.data?.analyticalCategories || []; const findCat = (idHints, siHints, fallbackSi) => { const found = cats.find(c => { const id = (c.id || "").toLowerCase(); const si = (c.nameSi || c.name || "").toLowerCase(); return idHints.some(h => id.includes(h)) || siHints.some(h => si.includes(h)); }); return { id: found?.id || idHints[0], nameSi: found?.nameSi || fallbackSi }; }; const txt = [a.titleSi, a.title, a.descriptionSi, a.description, a.purposeSi, a.resultsSi, a.categoryNameSi, a.categorySi, a.sector, a.category].filter(Boolean).join(" ").toLowerCase(); if (/දන්සැල්|දන්සල්|බක්ති ගීත|භක්ති ගීත|පොසොන්|වෙසක්|ඇසළ|පෝය|බෝධිපූජා|පින්කම්|ධර්ම|සාහිත්‍ය|අවුරුදු උත්සව|සර්ව ආගමික|ආගමික|සංස්කෘතික|කෝවිල්|පල්ලි|විහාර|පෙරහැර/.test(txt)) return findCat(["religious", "cultural"], ["ආගමික", "සංස්කෘතික"], "ආගමික හා සංස්කෘතික"); if (/ඩෙංගු|වෛද්‍ය|සායන|ශ්‍රමදාන|පරිසර|යෝග|මත්ද්‍රව්‍ය|සෞඛ්‍ය|රුධිර|දන්ත|අක්ෂි|පිරිසිදු/.test(txt)) return findCat(["health", "environment"], ["සෞඛ්‍ය", "පරිසර"], "සෞඛ්‍ය හා පරිසර"); if (/මාර්ග|නිවාස|ජල|ප්‍රජාශාලා|පාලම්|කාණු|විදුලි|ඉදිකිරීම්|යටිතල/.test(txt)) return findCat(["infrastructure"], ["යටිතල", "මාර්ග"], "යටිතල පහසුකම්"); if (/පුහුණු|වගා|කෘෂි|ස්වයං රැකියා|ජීවනෝපාය|ආර්ථික|මැහුම්|ව්‍යවසාය/.test(txt)) return findCat(["livelihood", "agriculture", "economic"], ["ජීවනෝපාය", "කෘෂි", "ආර්ථික"], "ජීවනෝපාය හා කෘෂිකර්ම"); if (/පාසල්|ළමා|දරුවන්|අධ්‍යාපන|ශිෂ්‍යත්ව|පෙර පාසල්|පුස්තකාල|පොත්/.test(txt)) return findCat(["education", "children"], ["අධ්‍යාපන", "ළමා"], "අධ්‍යාපන හා ළමා සංවර්ධන"); if (/සුභසාධන|ආධාර|වැඩිහිටි|ආබාධිත|සහන|වියළි ආහාර|පරිත්‍යාග/.test(txt)) return findCat(["welfare", "social"], ["සුභසාධන", "සමාජ"], "සමාජ සුභසාධන"); const cur = cats.find(c => c.id === a.category || c.nameSi === a.categoryNameSi); return { id: cur?.id || a.category || "other", nameSi: cur?.nameSi || a.categoryNameSi || a.categorySi || a.sector || "වෙනත්" }; } syncComputedMetrics() { const acts = this.data.activities || []; const explicitSwaps = { "2026-12-10": "2026-10-12", "2026-11-10": "2026-10-11", "2026-11-08": "2026-08-11" }; acts.forEach(a => { let raw = (a.date || a.activityDate || "").toString().trim().slice(0, 10); if (explicitSwaps[raw]) raw = explicitSwaps[raw]; const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (m) { let y = parseInt(m[1], 10), mo = parseInt(m[2], 10), d = parseInt(m[3], 10); if (y > 2026 || y < 2025) y = 2026; const ymStr = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`; if (ymStr < "2025-11-01") y = 2026; const tsRaw = (a.timestamp || a.submittedAt || a.createdAt || "").toString().trim().slice(0, 10); const tsM = tsRaw.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (tsM) { const ty = parseInt(tsM[1], 10), tm = parseInt(tsM[2], 10); if (y > ty) y = ty <= 2026 ? ty : 2026; if (y === ty && mo > tm) { if (d >= 1 && d <= tm && d <= 12 && mo <= 31) { const tmp = mo; mo = d; d = tmp; } else { mo = tm; if (d > 28) d = 28; } } } const fixed = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`; a.date = fixed; a.activityDate = fixed; a.year = String(y); a.month = fixed.slice(0, 7); a.yearMonth = fixed.slice(0, 7); } const cls = this.classifyActivityCategory(a); if (cls) { a.category = cls.id; a.categoryNameSi = cls.nameSi; a.categorySi = cls.nameSi; a.sector = cls.nameSi; } }); const monthMap = {}; acts.forEach(a => { const ym = (a.yearMonth || a.month || (a.date || "").slice(0, 7)).trim(); if (!/^\d{4}-\d{2}$/.test(ym) || ym < "2025-11") return; if (!monthMap[ym]) monthMap[ym] = []; monthMap[ym].push(a); }); const computedMonths = Object.keys(monthMap).sort().map(ym => { const mActs = monthMap[ym]; const photos = mActs.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0); const gns = new Set(mActs.map(a => a.gnNameSi || a.gnDivision || a.gnName).filter(Boolean)).size; return { month: ym, monthKey: ym, count: mActs.length, totalProjects: mActs.length, activeDays: this.getUniqueActiveDays(mActs), photos, reportingGns: gns }; }); if (computedMonths.length > 0) { this.data.monthlyStats = computedMonths; this.data.monthlyProgress = computedMonths; } const uniqueDays = this.getUniqueActiveDays(acts); const totalPhotos = this.data.photoGallery?.length || acts.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0); if (!this.data.overview) this.data.overview = {}; this.data.overview.totalActivities = acts.length; this.data.overview.activeDays = uniqueDays; this.data.overview.totalActiveDays = uniqueDays; this.data.overview.totalPhotographs = totalPhotos; if (Array.isArray(this.data.gnDivisions)) { this.data.gnDivisions.forEach(g => { const gActs = acts.filter(a => (g.nameSi && a.gnNameSi === g.nameSi) || (g.name && (a.gnDivision === g.name || a.gnName === g.name))); g.totalProjects = gActs.length; g.activityCount = gActs.length; g.activeDays = this.getUniqueActiveDays(gActs); g.photos = gActs.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0); }); this.data.overview.reportingGns = this.data.gnDivisions.filter(g => (g.totalProjects || g.activityCount || 0) > 0).length; } if (Array.isArray(this.data.categories)) { this.data.categories.forEach(c => { c.count = acts.filter(a => a.category === c.id || a.categoryNameSi === c.nameSi).length; }); } if (false) { const acts = this.data.activities || []; const uniqueDays = this.getUniqueActiveDays(acts); const totalPhotos = this.data.photoGallery?.length || acts.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0); if (!this.data.overview) this.data.overview = {}; this.data.overview.totalActivities = acts.length; this.data.overview.activeDays = uniqueDays; this.data.overview.totalActiveDays = uniqueDays; this.data.overview.totalPhotographs = totalPhotos; if (Array.isArray(this.data.gnDivisions)) { this.data.gnDivisions.forEach(g => { const gActs = acts.filter(a => (g.nameSi && a.gnNameSi === g.nameSi) || (g.name && (a.gnDivision === g.name || a.gnName === g.name))); if (gActs.length > 0 || !g.activeDays) g.activeDays = this.getUniqueActiveDays(gActs); }); this.data.overview.reportingGns = this.data.gnDivisions.filter(g => (g.totalProjects || g.activityCount || 0) > 0).length; } const mList = this.data.monthlyStats || this.data.monthlyProgress || []; mList.forEach(m => { if (!m.activeDays && m.month) { const mActs = acts.filter(a => (a.month || "").includes(m.month) || (a.date || "").startsWith(m.month)); if (mActs.length > 0) m.activeDays = this.getUniqueActiveDays(mActs); } }); } } renderKPIs() {
     const sec = this.data.overview || this.data.secretariatInfo || {};
 
     const totalAct = sec.totalActivities || this.data.activities?.length || 0;
@@ -2358,7 +2358,7 @@ class PssApp {
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem;">
-            <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 0.9rem; border-left: 3px solid #38BDF8;">
+            <div style="display: none;">
               <div style="font-size: 0.74rem; font-weight: 700; color: #38BDF8; margin-bottom: 0.3rem;">
                 <i class="bi bi-bullseye"></i> වැඩසටහනේ අරමුණ
               </div>
@@ -2614,7 +2614,7 @@ class PssApp {
     if (mSelect) mSelect.value = "all";
 
     const ySelect = document.getElementById("reportYearSelect");
-    if (ySelect) ySelect.value = "2024";
+    if (ySelect) ySelect.value = "2026";
 
     const catSelect = document.getElementById("reportCategorySelect");
     if (catSelect) catSelect.value = "all";
@@ -2631,13 +2631,13 @@ class PssApp {
     const selectedGn = document.getElementById("reportGnSelect")?.value || "all";
     const selectedPeriod = document.getElementById("reportPeriodSelect")?.value || "all";
     const selectedMonth = document.getElementById("reportMonthSelect")?.value || "all";
-    const selectedYear = document.getElementById("reportYearSelect")?.value || "2024";
+    const selectedYear = document.getElementById("reportYearSelect")?.value || "2026";
     const selectedCategory = document.getElementById("reportCategorySelect")?.value || "all";
     const specificActId = document.getElementById("reportSpecificActivitySelect")?.value;
 
     const currentDate = new Date().toLocaleDateString("si-LK");
     const currentTime = new Date().toLocaleTimeString("si-LK", { hour: "2-digit", minute: "2-digit" });
-    const docRefId = `AKM/PSS/REP/2024/${String(reportType).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const docRefId = `AKM/PSS/REP/2026/${String(reportType).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     // Filter Activities based on active configuration
     let reportActs = this.data.activities.filter(a => {
@@ -2692,15 +2692,15 @@ class PssApp {
 
     // Period Display Text
     const periodMap = {
-      all: "සම්පූර්ණ වාර්ෂික කාලසීමාව (2024)",
-      h1: "පළමු අර්ධ වාර්ෂිකය (H1: ජනවාරි - ජූනි 2024)",
-      h2: "දෙවන අර්ධ වාර්ෂිකය (H2: ජූලි - දෙසැම්බර් 2024)",
-      q1: "1 වන කාර්තුව (Q1: ජනවාරි - මාර්තු 2024)",
-      q2: "2 වන කාර්තුව (Q2: අප්‍රේල් - ජූනි 2024)",
-      q3: "3 වන කාර්තුව (Q3: ජූලි - සැප්තැම්බර් 2024)",
-      q4: "4 වන කාර්තුව (Q4: ඔක්තෝබර් - දෙසැම්බර් 2024)"
+      all: "සම්පූර්ණ වාර්ෂික කාලසීමාව (2026)",
+      h1: "පළමු අර්ධ වාර්ෂිකය (H1: ජනවාරි - ජූනි 2026)",
+      h2: "දෙවන අර්ධ වාර්ෂිකය (H2: ජූලි - දෙසැම්බර් 2026)",
+      q1: "1 වන කාර්තුව (Q1: ජනවාරි - මාර්තු 2026)",
+      q2: "2 වන කාර්තුව (Q2: අප්‍රේල් - ජූනි 2026)",
+      q3: "3 වන කාර්තුව (Q3: ජූලි - සැප්තැම්බර් 2026)",
+      q4: "4 වන කාර්තුව (Q4: ඔක්තෝබර් - දෙසැම්බර් 2026)"
     };
-    const periodText = periodMap[selectedPeriod] || "2024 වර්ෂය";
+    const periodText = periodMap[selectedPeriod] || "2026 වර්ෂය";
 
     // Build specific report contents
     let reportTitle = "";
@@ -2720,7 +2720,7 @@ class PssApp {
     // REPORT TYPE 1: සමස්ත සංවර්ධන ප්‍රගති වාර්තාව
     // -------------------------------------------------------------
     if (reportType === "1") {
-      reportTitle = "සමස්ත සංවර්ධන ප්‍රගති වාර්තාව 2024";
+      reportTitle = "සමස්ත සංවර්ධන ප්‍රගති වාර්තාව 2026";
       reportSubtitle = "අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ ප්‍රජා සංවර්ධන සභා වැඩසටහන් ප්‍රගති සමාලෝචනය";
 
       const totalActs = reportActs.length;
@@ -2807,7 +2807,7 @@ class PssApp {
 
         <h4 class="report-section-heading">1. විධායක සාරාංශය (Executive Summary)</h4>
         <p style="font-size: 0.92rem; line-height: 1.8; color: #334155; margin-bottom: 1.2rem;">
-          අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ ග්‍රාම නිලධාරී වසම් 63 හි ස්ථාපිත ප්‍රජා සංවර්ධන සභා මගින් 2024 වර්ෂය තුළ ක්‍රියාත්මක කරන ලද සමස්ත ව්‍යාපෘති ${totalActs} ක් අතුරින් ව්‍යාපෘති ${completedActs} ක් සාර්ථකව අවසන් කර ඇති අතර තවත් ව්‍යාපෘති ${ongoingActs} ක් ක්ෂේත්‍ර මට්ටමින් ක්‍රියාත්මක වේ. මේ සඳහා සත්‍යාපිත ක්ෂේත්‍ර ඡායාරූප ${totalPhotos.toLocaleString()} ක් සාක්ෂි වශයෙන් ලේඛනගත කර ඇති අතර කොට්ඨාසයේ අඩු ආදායම්ලාභී හා ග්‍රාමීය ප්‍රජාව නියෝජනය කරන පවුල් ${(totalBeneficiaries || 0).toLocaleString()} කට අධික සංඛ්‍යාවකට සෘජු ප්‍රජා ප්‍රතිලාභ හිමිව ඇත.
+          අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ ග්‍රාම නිලධාරී වසම් 63 හි ස්ථාපිත ප්‍රජා සංවර්ධන සභා මගින් 2026 වර්ෂය තුළ ක්‍රියාත්මක කරන ලද සමස්ත ව්‍යාපෘති ${totalActs} ක් අතුරින් ව්‍යාපෘති ${completedActs} ක් සාර්ථකව අවසන් කර ඇති අතර තවත් ව්‍යාපෘති ${ongoingActs} ක් ක්ෂේත්‍ර මට්ටමින් ක්‍රියාත්මක වේ. මේ සඳහා සත්‍යාපිත ක්ෂේත්‍ර ඡායාරූප ${totalPhotos.toLocaleString()} ක් සාක්ෂි වශයෙන් ලේඛනගත කර ඇති අතර කොට්ඨාසයේ අඩු ආදායම්ලාභී හා ග්‍රාමීය ප්‍රජාව නියෝජනය කරන පවුල් ${(totalBeneficiaries || 0).toLocaleString()} කට අධික සංඛ්‍යාවකට සෘජු ප්‍රජා ප්‍රතිලාභ හිමිව ඇත.
         </p>
 
         <h4 class="report-section-heading">2. ක්ෂේත්‍ර මට්ටමේ ප්‍රතිපාදන හා ප්‍රගති සාරාංශය (Sectoral Performance)</h4>
@@ -2850,7 +2850,7 @@ class PssApp {
 
       // Excel Dataset
       excelRows = [
-        ["අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - ප්‍රජා සංවර්ධන සභා වැඩසටහන් සමස්ත ප්‍රගති වාර්තාව 2024"],
+        ["අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - ප්‍රජා සංවර්ධන සභා වැඩසටහන් සමස්ත ප්‍රගති වාර්තාව 2026"],
         ["ලේඛන අංකය:", docRefId, "දිනය:", currentDate],
         [],
         ["අංකය", "වැඩසටහනේ නම", "ග්‍රාම නිලධාරී වසම", "ප්‍රජා සංවර්ධන සභාව", "අංශය", "දිනය", "ප්‍රතිලාභී පවුල්", "ඡායාරූප ගණන", "ප්‍රගතිය (%)"]
@@ -2867,12 +2867,12 @@ class PssApp {
     // REPORT TYPE 2: මාසික ප්‍රගති වාර්තාව
     // -------------------------------------------------------------
     else if (reportType === "2") {
-      reportTitle = "මාසික සංවර්ධන ප්‍රගති වාර්තාව 2024";
+      reportTitle = "මාසික සංවර්ධන ප්‍රගති වාර්තාව 2026";
       reportSubtitle = `කාලානුක්‍රමික ප්‍රගති වේගය හා මාසික මූල්‍ය ආයෝජන සමාලෝචනය (${periodText})`;
 
       let monthlyRowsHtml = "";
       excelRows = [
-        ["අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - මාසික සංවර්ධන ප්‍රගති වාර්තාව 2024"],
+        ["අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - මාසික සංවර්ධන ප්‍රගති වාර්තාව 2026"],
         ["කාලසීමාව:", periodText, "දිනය:", currentDate],
         [],
         ["මාසය", "ක්‍රියාත්මක වැඩසටහන්", "සම්පූර්ණ වූ", "වාර්තා කළ වසම්", "ක්‍රියාකාරී දින", "සත්‍යාපිත ඡායාරූප", "සමුච්චිත වැඩසටහන්", "ප්‍රගතිය (%)"]
@@ -3222,12 +3222,12 @@ class PssApp {
     // REPORT TYPE 6: වැඩසටහන් වර්ග අනුව වාර්තාව
     // -------------------------------------------------------------
     else if (reportType === "6") {
-      reportTitle = "වැඩසටහන් වර්ගීකරණ හා ආංශික ප්‍රගති වාර්තාව 2024";
+      reportTitle = "වැඩසටහන් වර්ගීකරණ හා ආංශික ප්‍රගති වාර්තාව 2026";
       reportSubtitle = "සංවර්ධන අංශ අතර සම්පත් බෙදීයෑම හා ප්‍රජා ප්‍රතිලාභ විශ්ලේෂණය";
 
       let categoryRowsHtml = "";
       excelRows = [
-        ["අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - වැඩසටහන් වර්ගීකරණ ප්‍රගති වාර්තාව 2024"],
+        ["අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - වැඩසටහන් වර්ගීකරණ ප්‍රගති වාර්තාව 2026"],
         ["දිනය:", currentDate, "කාලසීමාව:", periodText],
         [],
         ["අංකය", "සංවර්ධන ක්ෂේත්‍රය", "ක්‍රියාත්මක වැඩසටහන්", "සම්පූර්ණ වූ", "ක්‍රියාත්මකයි", "ප්‍රතිලාභී පවුල්", "සත්‍යාපිත ඡායාරූප", "ප්‍රගතිය (%)"]
@@ -3298,7 +3298,7 @@ class PssApp {
 
       let gnTableRowsHtml = "";
       excelRows = [
-        ["අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - ග්‍රාම නිලධාරී වසම් 63 හි සංසන්දනාත්මක ප්‍රගති වාර්තාව 2024"],
+        ["අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - ග්‍රාම නිලධාරී වසම් 63 හි සංසන්දනාත්මක ප්‍රගති වාර්තාව 2026"],
         ["දිනය:", currentDate, "ආවරණය කළ වසම්:", "63"],
         [],
         ["අංකය", "ග්‍රාම නිලධාරී වසම", "ප්‍රජා සංවර්ධන සභාව", "ප්‍රමුඛ ක්ෂේත්‍රය", "මුළු වැඩසටහන්", "සම්පූර්ණ වූ", "ක්‍රියාත්මකයි", "ප්‍රතිලාභී පවුල්", "සත්‍යාපිත ඡායාරූප", "ප්‍රගතිය (%)"]
