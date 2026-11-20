@@ -1542,3 +1542,5 @@ td {
 .editorial-card-title { color: #f8fafc !important; overflow: visible !important; max-height: none !important; -webkit-line-clamp: unset !important; display: block !important; white-space: normal !important; line-height: 1.5 !important; }
 .editorial-card-description { color: #e2e8f0 !important; overflow: visible !important; max-height: none !important; -webkit-line-clamp: unset !important; display: block !important; white-space: pre-line !important; line-height: 1.85 !important; font-size: 0.98rem !important; }
 .editorial-card-meta, .editorial-meta-badge { color: #cbd5e1 !important; }
+/* Tab 5 Reports Preview: dark text on white background */
+:is(#reportPreviewContainer, .report-preview, .report-paper) :is(h1, h2, h3, h4, p, td, th, span, div):not(thead th):not(thead td):not(.report-header):not(.report-header *):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: white"]):not([style*="color:white"]) { color: #0f172a !important; }
