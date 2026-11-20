@@ -2583,7 +2583,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       let totalTarget = 0, totalComp = 0, totalOng = 0, totalBen = 0, totalPhotosCount = 0;
 
       reportMonthly.forEach((m) => {
-        const rate = 100;
+        const reportedGns = m.reportingDivisions || m.activeGNCount || 0; const coveragePct = ((reportedGns / 63) * 100).toFixed(1) + '%';
         const count = m.count || m.totalProjects || 1;
         totalTarget += count;
         totalComp += (m.completed || count);
@@ -2598,12 +2598,12 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
             <td style="text-align: center;">${m.activeDays || 1}</td>
             <td style="text-align: center; font-weight: 700; color: #0D9488;">${m.photos || 0}</td>
             <td style="text-align: center; font-weight: 700;">${m.cumulativeActivities || m.cumulativeCount || count}</td>
-            <td style="text-align: center; font-weight: 800; color: #15803D;">100%</td>
+            <td style="text-align: center; font-weight: 800; color: #15803D;">${coveragePct}</td>
           </tr>
         `;
 
-        excelRows.push([m.monthSi, count, m.completed || count, m.reportingDivisions || m.activeGNCount || 1, m.activeDays || 1, m.photos || 0, m.cumulativeActivities || m.cumulativeCount || count, "100%"]);
-        csvData += `"${m.monthSi}",${count},${m.completed || count},${m.reportingDivisions || m.activeGNCount || 1},${m.activeDays || 1},${m.photos || 0},${m.cumulativeActivities || m.cumulativeCount || count},100%\n`;
+        excelRows.push([m.monthSi, count, m.completed || count, m.reportingDivisions || m.activeGNCount || 1, m.activeDays || 1, m.photos || 0, m.cumulativeActivities || m.cumulativeCount || count, coveragePct]);
+        csvData += `"${m.monthSi}",${count},${m.completed || count},${m.reportingDivisions || m.activeGNCount || 1},${m.activeDays || 1},${m.photos || 0},${m.cumulativeActivities || m.cumulativeCount || count},${coveragePct}\n`;
       });
 
       bodyHtml = `
@@ -4189,7 +4189,9 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       const isAug = m.monthKey === "2026-08";
       const isSep = m.monthKey === "2026-09";
       const rowStyle = isAug ? "background: rgba(212, 175, 55, 0.08);" : (isSep ? "background: rgba(56, 189, 248, 0.06);" : "");
-
+      const reportedGns = m.reportingDivisions || m.reportingGns || 0;
+      const coveragePct = ((reportedGns / 63) * 100).toFixed(1) + '%';
+      
       tbody.innerHTML += `
         <tr style="${rowStyle}">
           <td>
@@ -4203,7 +4205,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
           <td style="text-align: center;">${momBadge}</td>
           <td style="text-align: center; font-weight: 700; color: #FFF;">${m.cumulativeActivities || m.cumulativeTotal || 0}</td>
           <td style="text-align: center;">
-            <span class="glass-badge green" style="font-size: 0.72rem;"><i class="bi bi-check-circle-fill"></i> 100% සම්පූර්ණයි</span>
+            <span class="glass-badge green" style="font-size: 0.72rem;"><i class="bi bi-check-circle-fill"></i> ${coveragePct} සම්පූර්ණයි</span>
           </td>
         </tr>
       `;
