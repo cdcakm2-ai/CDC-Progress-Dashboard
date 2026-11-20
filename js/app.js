@@ -1214,7 +1214,7 @@ class PssApp {
   }
 
 renderOverviewTab() { this.renderLatestMonthProgress(); }
-renderLatestMonthProgress() { const container = document.getElementById("latestMonthProgressContainer") || document.getElementById("overviewRecentList"); if (!container) return; const acts = this.data.activities || []; const mSet = new Set(); acts.forEach(a => { const d = (a.date || "").trim(); if (/^\d{4}-\d{2}/.test(d)) mSet.add(d.slice(0, 7)); }); const months = Array.from(mSet).sort(); const latestKey = months.length ? months[months.length - 1] : null; if (!latestKey) { container.innerHTML = '<div style="color:#94A3B8;text-align:center;padding:1.5rem;">නවතම මාසයේ දත්ත හමු නොවීය...</div>'; return; } const siM = {"01":"ජනවාරි","02":"පෙබරවාරි","03":"මාර්තු","04":"අප්‍රේල්","05":"මැයි","06":"ජූනි","07":"ජූලි","08":"අගෝස්තු","09":"සැප්තැම්බර්","10":"ඔක්තෝම්බර්","11":"නොවැම්බර්","12":"දෙසැම්බර්"}; const parts = latestKey.split("-"); const monthLabel = parts[0] + " " + (siM[parts[1]] || parts[1]); const mActs = acts.filter(a => (a.date || "").trim().startsWith(latestKey)); const gnCounts = {}; const secCounts = {}; let photoCount = 0; mActs.forEach(a => { const gn = a.gnNameSi || a.gnDivision || "වෙනත්"; gnCounts[gn] = (gnCounts[gn] || 0) + 1; const sec = a.sectorSi || a.sector || a.categorySi || a.category || "වෙනත්"; secCounts[sec] = (secCounts[sec] || 0) + 1; if (Array.isArray(a.images)) photoCount += a.images.length; else if (Array.isArray(a.photos)) photoCount += a.photos.length; }); const actCount = mActs.length; const daysCount = this.getUniqueActiveDays(mActs); const gnCount = Object.keys(gnCounts).length; const sortedSec = Object.entries(secCounts).sort((a, b) => b[1] - a[1]); const sortedGn = Object.entries(gnCounts).sort((a, b) => b[1] - a[1]); const sortedActs = mActs.slice().sort((a, b) => (b.date || "").localeCompare(a.date || "")); const secHtml = sortedSec.map(([s, c]) => '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;"><span style="color:#FFFFFF;font-weight:600;">' + s + '</span><span class="glass-badge blue" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + c + '</span></div>').join(""); const gnHtml = sortedGn.map(([g, c]) => '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;"><span style="color:#FFFFFF;font-weight:600;">' + g + '</span><span class="glass-badge green" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + c + '</span></div>').join(""); const listHtml = sortedActs.map(a => '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:0.65rem 0.85rem;"><div style="font-size:0.88rem;font-weight:600;color:#FFFFFF;margin-bottom:0.2rem;">' + (a.titleSi || a.title || "") + '</div><div style="font-size:0.76rem;color:#94A3B8;display:flex;gap:0.75rem;flex-wrap:wrap;"><span><i class="bi bi-calendar3"></i> ' + (a.date || "") + '</span><span><i class="bi bi-geo-alt"></i> ' + (a.gnNameSi || a.gnDivision || "-") + '</span><span><i class="bi bi-tag"></i> ' + (a.sectorSi || a.sector || a.categorySi || "-") + '</span></div></div>').join(""); container.innerHTML = '<div style="background:rgba(15,23,44,0.7);border-radius:14px;padding:1.2rem;border:1px solid rgba(255,255,255,0.08);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;"><div><span style="font-size:0.8rem;color:#94A3B8;">නවතම සක්‍රීය මාසයේ ප්‍රගතිය</span><h3 style="font-size:1.35rem;font-weight:800;color:#FFFFFF;margin:0.2rem 0 0 0;"><span class="blue-text-gradient">' + monthLabel + '</span></h3></div><span class="glass-badge green" style="font-size:0.78rem;padding:0.35rem 0.8rem;"><i class="bi bi-check-circle-fill"></i> ස්වයංක්‍රීයව යාවත්කාලීන වේ</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.7rem;margin-bottom:1.1rem;" class="latest-month-mini-kpis"><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #38BDF8;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">වැඩසටහන් ගණන</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + actCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #FBBF24;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">සක්‍රීය දින</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + daysCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #34D399;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">වාර්තා කළ වසම්</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + gnCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #A78BFA;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">ඡායාරූප</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + photoCount + '</div></div></div><div style="margin-bottom:1.1rem;"><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-pie-chart-fill text-info"></i> ක්ෂේත්‍ර අනුව බෙදීම</div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + secHtml + '</div></div><div style="margin-bottom:1.1rem;"><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-geo-alt-fill text-success"></i> වසම් අනුව බෙදීම</div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + gnHtml + '</div></div><div><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-list-check text-gold"></i> ' + monthLabel + ' වැඩසටහන් ලැයිස්තුව (' + actCount + ')</div><div style="display:flex;flex-direction:column;gap:0.5rem;max-height:420px;overflow-y:auto;padding-right:0.25rem;">' + listHtml + '</div></div></div>'; }
+renderLatestMonthProgress() { const container = document.getElementById("latestMonthProgressContainer") || document.getElementById("overviewRecentList"); if (!container) return; const acts = this.data.activities || []; const mSet = new Set(); acts.forEach(a => { const d = (a.date || "").trim(); if (/^\d{4}-\d{2}/.test(d)) mSet.add(d.slice(0, 7)); }); const months = Array.from(mSet).sort(); const latestKey = months.length ? months[months.length - 1] : null; if (!latestKey) { container.innerHTML = '<div style="color:#94A3B8;text-align:center;padding:1.5rem;">නවතම මාසයේ දත්ත හමු නොවීය...</div>'; return; } const siM = {"01":"ජනවාරි","02":"පෙබරවාරි","03":"මාර්තු","04":"අප්‍රේල්","05":"මැයි","06":"ජූනි","07":"ජූලි","08":"අගෝස්තු","09":"සැප්තැම්බර්","10":"ඔක්තෝම්බර්","11":"නොවැම්බර්","12":"දෙසැම්බර්"}; const parts = latestKey.split("-"); const monthLabel = parts[0] + " " + (siM[parts[1]] || parts[1]); const mActs = acts.filter(a => (a.date || "").trim().startsWith(latestKey)); const gnCounts = {}; const secCounts = {}; let photoCount = 0; mActs.forEach(a => { const gn = a.gnNameSi || a.gnDivision || "වෙනත්"; gnCounts[gn] = (gnCounts[gn] || 0) + 1; const sec = a.sectorSi || a.sector || a.categorySi || a.category || "වෙනත්"; secCounts[sec] = (secCounts[sec] || 0) + 1; if (Array.isArray(a.images)) photoCount += a.images.length; else if (Array.isArray(a.photos)) photoCount += a.photos.length; }); const actCount = mActs.length; const daysCount = this.getUniqueActiveDays(mActs); const gnCount = Object.keys(gnCounts).length; const sortedSec = Object.entries(secCounts).sort((a, b) => b[1] - a[1]); const sortedGn = Object.entries(gnCounts).sort((a, b) => b[1] - a[1]); const sortedActs = mActs.slice().sort((a, b) => (b.date || "").localeCompare(a.date || "")); const secHtml = sortedSec.map(([s, c]) => '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;"><span style="color:#FFFFFF;font-weight:600;">' + s + '</span><span class="glass-badge blue" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + c + '</span></div>').join(""); const gnHtml = sortedGn.map(([g, c]) => '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;"><span style="color:#FFFFFF;font-weight:600;">' + g + '</span><span class="glass-badge green" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + c + '</span></div>').join(""); const listHtml = sortedActs.map((a, idx) => { const photos = a.photoObjects || (Array.isArray(a.photos) ? a.photos : (a.images || []).map((url, i) => ({ id: `${a.id || idx}-p${i}`, thumbnail: url, full: url }))); const titleText = a.titleSi || a.title || a.description || ""; const descText = a.description || a.actionsSi || a.titleSi || a.title || ""; const collageHtml = this.buildPhotoCollageHTML(photos, titleText); return `<div class="editorial-activity-card" data-latest-act-idx="${idx}"><div class="editorial-activity-meta"><span class="editorial-meta-pill division-pill"><i class="bi bi-geo-alt-fill"></i> ${a.gnNameSi || a.gnDivision || "-"}</span><span class="editorial-meta-pill date-pill"><i class="bi bi-calendar3"></i> ${a.date || ""}</span><span class="editorial-meta-pill sector-pill"><i class="bi bi-tag-fill"></i> ${a.categoryNameSi || a.sectorSi || a.sector || a.categorySi || "-"}</span></div><h3 class="editorial-activity-title">${titleText}</h3>${collageHtml}<p class="editorial-activity-desc">${descText}</p></div>`; }).join(""); container.innerHTML = '<div style="background:rgba(15,23,44,0.7);border-radius:14px;padding:1.2rem;border:1px solid rgba(255,255,255,0.08);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;"><div><span style="font-size:0.8rem;color:#94A3B8;">නවතම සක්‍රීය මාසයේ ප්‍රගතිය</span><h3 style="font-size:1.35rem;font-weight:800;color:#FFFFFF;margin:0.2rem 0 0 0;"><span class="blue-text-gradient">' + monthLabel + '</span></h3></div><span class="glass-badge green" style="font-size:0.78rem;padding:0.35rem 0.8rem;"><i class="bi bi-check-circle-fill"></i> ස්වයංක්‍රීයව යාවත්කාලීන වේ</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.7rem;margin-bottom:1.1rem;" class="latest-month-mini-kpis"><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #38BDF8;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">වැඩසටහන් ගණන</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + actCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #FBBF24;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">සක්‍රීය දින</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + daysCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #34D399;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">වාර්තා කළ වසම්</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + gnCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #A78BFA;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">ඡායාරූප</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + photoCount + '</div></div></div><div style="margin-bottom:1.1rem;"><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-pie-chart-fill text-info"></i> ක්ෂේත්‍ර අනුව බෙදීම</div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + secHtml + '</div></div><div style="margin-bottom:1.1rem;"><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-geo-alt-fill text-success"></i> වසම් අනුව බෙදීම</div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + gnHtml + '</div></div><div><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-list-check text-gold"></i> ' + monthLabel + ' වැඩසටහන් ලැයිස්තුව (' + actCount + ')</div><div style="display:flex;flex-direction:column;gap:0.5rem;max-height:420px;overflow-y:auto;padding-right:0.25rem;">' + listHtml + '</div></div></div>'; }
   
 
   renderMonthlyTab() {
@@ -1592,9 +1592,23 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
   }
 
   // --- Activity Card Builder with Direct Photo Gallery on the Page ---
+  buildPhotoCollageHTML(photos, title = "") {
+    if (!Array.isArray(photos) || photos.length === 0) return "";
+    const total = photos.length;
+    const countClass = total === 1 ? "collage-count-1" : total === 2 ? "collage-count-2" : total === 3 ? "collage-count-3" : "collage-count-4";
+    const visible = photos.slice(0, 4);
+    const safeTitle = String(title || "").replace(/"/g, "&quot;");
+    const itemsHtml = visible.map((p, idx) => {
+      const src = typeof p === "string" ? p : (p.thumbnail || p.full || p.url || "");
+      const moreBadge = (idx === 3 && total > 4) ? `<span class="photo-collage-more">+${total - 4}</span>` : "";
+      return `<div class="photo-collage-item" data-photo-idx="${idx}" title="${safeTitle}"><img src="${src}" alt="${safeTitle}" loading="lazy">${moreBadge}</div>`;
+    }).join("");
+    return `<div class="photo-collage ${countClass}">${itemsHtml}</div>`;
+  }
+
   createActivityCardElement(act) {
     const card = document.createElement("div");
-    card.className = "activity-card glass-card-3d";
+    card.className = "editorial-activity-card";
     card.setAttribute("data-act-id", act.id);
 
     const photos = act.photoObjects || (act.images || []).map((url, i) => ({
@@ -1603,123 +1617,39 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       full: url,
       driveUrl: url
     }));
-    const photoCount = photos.length;
-
-    let galleryMarkup = "";
-    if (photoCount === 0) {
-      galleryMarkup = `
-        <div class="activity-no-photos">
-          <i class="bi bi-card-image" style="font-size: 1.8rem; color: #475569;"></i>
-          <span style="font-size: 0.78rem; color: #64748B;">ඡායාරූප අමුණා නැත</span>
-        </div>
-      `;
-    } else if (photoCount === 1) {
-      galleryMarkup = `
-        <div class="activity-card-gallery single">
-          <div class="act-photo-item" data-photo-idx="0" title="විශාල කර බලන්න">
-            <img src="${photos[0].thumbnail || photos[0].full}" alt="${act.titleSi || act.title || act.description || "වැඩසටහන"}" loading="lazy" class="act-photo-img" />
-            <div class="act-photo-zoom-overlay"><i class="bi bi-arrows-fullscreen"></i></div>
-          </div>
-        </div>
-      `;
-    } else if (photoCount === 2) {
-      galleryMarkup = `
-        <div class="activity-card-gallery two-grid">
-          ${photos.map((p, idx) => `
-            <div class="act-photo-item" data-photo-idx="${idx}" title="විශාල කර බලන්න">
-              <img src="${p.thumbnail || p.full}" alt="${act.titleSi || act.title || act.description || "වැඩසටහන"}" loading="lazy" class="act-photo-img" />
-              <div class="act-photo-zoom-overlay"><i class="bi bi-arrows-fullscreen"></i></div>
-            </div>
-          `).join("")}
-        </div>
-      `;
-    } else if (photoCount === 3) {
-      galleryMarkup = `
-        <div class="activity-card-gallery three-grid">
-          ${photos.map((p, idx) => `
-            <div class="act-photo-item" data-photo-idx="${idx}" title="විශාල කර බලන්න">
-              <img src="${p.thumbnail || p.full}" alt="${act.titleSi || act.title || act.description || "වැඩසටහන"}" loading="lazy" class="act-photo-img" />
-              <div class="act-photo-zoom-overlay"><i class="bi bi-arrows-fullscreen"></i></div>
-            </div>
-          `).join("")}
-        </div>
-      `;
-    } else if (photoCount === 4) {
-      galleryMarkup = `
-        <div class="activity-card-gallery four-grid">
-          ${photos.map((p, idx) => `
-            <div class="act-photo-item" data-photo-idx="${idx}" title="විශාල කර බලන්න">
-              <img src="${p.thumbnail || p.full}" alt="${act.titleSi || act.title || act.description || "වැඩසටහන"}" loading="lazy" class="act-photo-img" />
-              <div class="act-photo-zoom-overlay"><i class="bi bi-arrows-fullscreen"></i></div>
-            </div>
-          `).join("")}
-        </div>
-      `;
-    } else {
-      // Display ALL photos at once without cropping
-      galleryMarkup = `
-        <div class="activity-card-gallery multi-grid">
-          ${photos.map((p, idx) => `
-            <div class="act-photo-item" data-photo-idx="${idx}" title="විශාල කර බලන්න">
-              <img src="${p.thumbnail || p.full}" alt="${act.titleSi || act.title || act.description || "වැඩසටහන"}" loading="lazy" class="act-photo-img" />
-              <div class="act-photo-zoom-overlay"><i class="bi bi-arrows-fullscreen"></i></div>
-            </div>
-          `).join("")}
-        </div>
-      `;
-    }
+    const titleText = act.titleSi || act.title || act.description || "";
+    const divisionText = act.gnNameSi || act.gnDivision || "-";
+    const dateText = act.date || "";
+    const sectorText = act.categoryNameSi || act.sectorSi || act.categoryName || act.sector || "-";
+    const descText = act.description || act.titleSi || act.title || "";
+    const collageHtml = this.buildPhotoCollageHTML(photos, titleText);
 
     card.innerHTML = `
-      <div class="activity-card-header">
-        <span class="glass-badge gold" title="${act.gnNameSi}">
-          <i class="bi bi-geo-alt-fill"></i> ${act.gnNameSi}
-        </span>
-        <span class="glass-badge green">
-          <i class="bi bi-check-circle-fill"></i> සම්පූර්ණයි
-        </span>
+      <div class="editorial-activity-meta">
+        <span class="editorial-meta-pill division-pill"><i class="bi bi-geo-alt-fill"></i> ${divisionText}</span>
+        <span class="editorial-meta-pill date-pill"><i class="bi bi-calendar3"></i> ${dateText}</span>
+        <span class="editorial-meta-pill sector-pill"><i class="bi bi-tag-fill"></i> ${sectorText}</span>
       </div>
-
-      ${galleryMarkup}
-
-      <div class="activity-body">
-        <div class="activity-meta-row">
-          <span><i class="bi bi-calendar3"></i> ${act.date}</span>
-          <span>•</span>
-          <span><i class="bi bi-tag-fill"></i> ${act.categoryNameSi || act.categoryName || "ප්‍රජා සංවර්ධන"}</span>
-          <span>•</span>
-          <span style="color: #FDE68A;"><i class="bi bi-images"></i> ඡායාරූප ${photoCount}</span>
-        </div>
-
-        <h3 class="activity-title">${act.titleSi || act.title || act.description || "වැඩසටහන"}</h3>
-
-        <div class="activity-desc-box">
-          <div style="font-size: 0.76rem; color: #94A3B8; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.3rem;">
-            <i class="bi bi-file-text text-gold"></i> සිදු කළ කාර්යය / විස්තරය:
-          </div>
-          <p class="activity-desc" style="color: #E2E8F0; font-size: 0.88rem; line-height: 1.6; margin: 0;">${act.description || act.titleSi}</p>
-        </div>
-
-        <div class="activity-footer">
-          <span class="activity-sabha" title="${act.sabhaNameSi}">
-            <i class="bi bi-building"></i> ${act.sabhaNameSi}
-          </span>
-          <button class="btn-gold btn-open-act-modal" style="padding: 0.45rem 1rem; font-size: 0.82rem;" data-act-id="${act.id}">
-            <i class="bi bi-eye"></i> සවිස්තර වාර්තාව
-          </button>
-        </div>
+      <h3 class="editorial-activity-title">${titleText}</h3>
+      ${collageHtml}
+      <p class="editorial-activity-desc">${descText}</p>
+      <div class="editorial-activity-footer">
+        <span class="activity-sabha" title="${act.sabhaNameSi || ""}"><i class="bi bi-building"></i> ${act.sabhaNameSi || ""}</span>
+        <button class="btn-gold btn-open-act-modal" style="padding: 0.45rem 1rem; font-size: 0.82rem;" data-act-id="${act.id}">
+          <i class="bi bi-eye"></i> &#x0DC0;&#x0DD2;&#x0DC3;&#x0DCA;&#x0DAD;&#x0DBB; &#x0DB6;&#x0DBD;&#x0DB1;&#x0DCA;&#x0DB1;
+        </button>
       </div>
     `;
 
-    // Bind Lightbox click for each photo item
-    const photoItems = card.querySelectorAll(".act-photo-item");
+    const photoItems = card.querySelectorAll(".photo-collage-item");
     photoItems.forEach(item => {
-      item.addEventListener("click", () => {
-        const photoIdx = parseInt(item.getAttribute("data-photo-idx") || "0", 10);
-        // Open lightbox with all photos from this activity
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const photoIdx = parseInt(item.getAttribute("data-photo-idx"), 10) || 0;
         const actPhotosForLightbox = photos.map(p => ({
           url: p.full || p.thumbnail,
           titleSi: act.titleSi,
-          gnDivision: act.gnNameSi,
+          gnDivision: act.gnNameSi || act.gnDivision,
           date: act.date,
           sabhaNameSi: act.sabhaNameSi,
           categoryNameSi: act.categoryNameSi,
@@ -2153,154 +2083,41 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
 
   createWebArticleElement(act, actIdx) {
     const article = document.createElement("article");
-    article.className = "activity-web-article glass-card-3d";
+    article.className = "editorial-activity-card";
     article.setAttribute("data-act-id", act.id);
 
     const photos = act.photoObjects || (act.images || []).map((url, i) => ({
       id: `${act.id}-p${i}`,
       thumbnail: url,
       full: url,
-      driveUrl: url,
-      caption: `${act.titleSi || act.title || act.description || "වැඩසටහන"} - ${act.gnNameSi}`
+      driveUrl: url
     }));
     const photoCount = photos.length;
-
-    // Editorial Blog Magazine Photo Gallery Box
-    let galleryHtml = "";
-    if (photoCount > 0) {
-      const heroPhoto = photos[0];
-      const remainingPhotos = photos.slice(1);
-      
-      let subGalleryMarkup = "";
-      if (remainingPhotos.length > 0) {
-        subGalleryMarkup = `
-          <div class="activity-sub-gallery-grid">
-            ${remainingPhotos.slice(0, 4).map((p, pIdx) => {
-              const realIdx = pIdx + 1;
-              const isLast = (pIdx === 3 && remainingPhotos.length > 4);
-              const extraCount = remainingPhotos.length - 3;
-              return `
-                <div class="activity-sub-photo-item activity-article-photo-item" data-photo-idx="${realIdx}" title="${p.caption || act.titleSi}">
-                  <img src="${p.thumbnail || p.full}" alt="${act.titleSi || act.title || "ඡායාරූපය"}" class="activity-sub-photo-img" loading="lazy" />
-                  ${isLast ? `
-                    <div style="position: absolute; inset: 0; background: rgba(11, 17, 32, 0.88); display: flex; align-items: center; justify-content: center; color: #38BDF8; font-weight: 700; font-size: 0.82rem; border-radius: 10px;">
-                      +${extraCount} තවත්
-                    </div>
-                  ` : `
-                    <div class="activity-article-photo-overlay"><i class="bi bi-arrows-fullscreen"></i></div>
-                  `}
-                </div>
-              `;
-            }).join("")}
-          </div>
-        `;
-      }
-
-      galleryHtml = `
-        <div class="activity-article-gallery-box">
-          <!-- Featured Hero Image -->
-          <div class="activity-hero-photo-wrap activity-article-photo-item" data-photo-idx="0" title="${act.titleSi || act.title || "ප්‍රධාන ඡායාරූපය"}">
-            <img src="${heroPhoto.thumbnail || heroPhoto.full}" alt="${act.titleSi || act.title || "ප්‍රධාන ඡායාරූපය"}" class="activity-hero-photo-img" loading="lazy" />
-            <div class="activity-photo-hero-badge">
-              <i class="bi bi-camera-fill"></i> 1/${photoCount} ප්‍රධාන ඡායාරූපය
-            </div>
-            <div class="activity-photo-zoom-btn">
-              <i class="bi bi-arrows-fullscreen"></i> විශාල කරන්න
-            </div>
-          </div>
-          <!-- Curated Sub Gallery -->
-          ${subGalleryMarkup}
-        </div>
-      `;
-    } else {
-      galleryHtml = `
-        <div class="activity-article-gallery-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; text-align: center; background: rgba(11, 17, 32, 0.5); border-radius: 14px;">
-          <i class="bi bi-images" style="font-size: 2.2rem; color: #475569; margin-bottom: 0.5rem;"></i>
-          <span style="font-size: 0.85rem; color: #64748B;">මෙම වැඩසටහන සඳහා ඡායාරූප අමුණා නැත</span>
-        </div>
-      `;
-    }
-
-    const numStr = (actIdx + 1).toString().padStart(2, "0");
+    const titleText = act.titleSi || act.title || act.description || "";
+    const divisionText = act.gnNameSi || act.gnDivision || "-";
+    const dateText = act.date || "";
+    const sectorText = act.categoryNameSi || act.sectorSi || act.categoryName || act.sector || "-";
+    const descText = act.description || act.actionsSi || act.titleSi || act.title || "";
+    const galleryHtml = this.buildPhotoCollageHTML(photos, titleText);
 
     article.innerHTML = `
-      <div class="activity-web-article-header">
-        <div class="activity-web-article-title-row">
-          <h3 class="activity-web-article-title">
-            <span style="color: #38BDF8;">${numStr}.</span> ${act.titleSi || act.title || act.description || "වැඩසටහන"}
-          </h3>
-          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <span class="glass-badge blue"><i class="bi bi-geo-alt-fill"></i> ${act.gnNameSi}</span>
-            <span class="glass-badge green"><i class="bi bi-check-circle-fill"></i> සම්පූර්ණයි</span>
-          </div>
-        </div>
-
-        <div class="activity-web-article-meta-row">
-          <span><i class="bi bi-calendar-event" style="color: #38BDF8;"></i> <strong>දිනය:</strong> ${act.date}</span>
-          <span>•</span>
-          <span><i class="bi bi-tag-fill" style="color: ${act.categoryColor || '#2DD4BF'};"></i> <strong>ක්ෂේත්‍රය:</strong> ${act.categoryNameSi || act.categoryName || "ප්‍රජා සංවර්ධන"}</span>
-          <span>•</span>
-          <span><i class="bi bi-building" style="color: #FBBF24;"></i> ${act.sabhaNameSi}</span>
-        </div>
+      <div class="editorial-activity-meta">
+        <span class="editorial-meta-pill division-pill"><i class="bi bi-geo-alt-fill"></i> ${divisionText}</span>
+        <span class="editorial-meta-pill date-pill"><i class="bi bi-calendar3"></i> ${dateText}</span>
+        <span class="editorial-meta-pill sector-pill"><i class="bi bi-tag-fill"></i> ${sectorText}</span>
       </div>
-
-      <div class="activity-web-article-body">
-        <!-- Left: Rich Text Narrative & Purpose -->
-        <div>
-          <div class="activity-detail-block">
-            <div class="activity-detail-block-title">
-              <i class="bi bi-file-text-fill"></i> සිදු කරන ලද කාර්යයන් සහ සවිස්තර තොරතුරු
-            </div>
-            <p class="activity-detail-text">
-              ${act.description || act.actionsSi || act.titleSi}
-            </p>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr; gap: 0.8rem; margin-bottom: 1rem;">
-            <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 0.9rem; border-left: 3px solid #34D399;">
-              <div style="font-size: 0.74rem; font-weight: 700; color: #34D399; margin-bottom: 0.3rem;">
-                <i class="bi bi-award-fill"></i> ලබාගත් ප්‍රතිඵල හා ප්‍රජා දායකත්වය
-              </div>
-              <div style="font-size: 0.88rem; color: #CBD5E1; line-height: 1.5;">
-                ${act.resultsSi || "ප්‍රජා සහභාගීත්වයෙන් සාර්ථකව ප්‍රතිඵල අත්කර ගන්නා ලදී."}
-              </div>
-            </div>
-          </div>
-
-          <div class="activity-meta-grid-2col">
-            <div class="activity-meta-item-box">
-              <div class="activity-meta-item-box-label"><i class="bi bi-geo-alt"></i> ස්ථානය</div>
-              <div class="activity-meta-item-box-val">${act.locationSi || act.gnNameSi}</div>
-            </div>
-            <div class="activity-meta-item-box">
-              <div class="activity-meta-item-box-label"><i class="bi bi-people"></i> සහභාගී වූ පිරිස / ප්‍රතිලාභීන්</div>
-              <div class="activity-meta-item-box-val">${act.beneficiaries || "ප්‍රදේශවාසී ගම්වාසීන්"}</div>
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 0.8rem; margin-top: 1.2rem; flex-wrap: wrap;">
-            ${photoCount > 0 ? `
-              <button class="btn-glass btn-view-gallery" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: #38BDF8; font-size: 0.82rem; padding: 0.45rem 1rem;">
-                <i class="bi bi-images"></i> සියලු ඡායාරූප (${photoCount})
-              </button>
-            ` : ''}
-            <button class="btn-glass btn-print-activity" data-act-id="${act.id}" style="padding: 0.45rem 1rem; font-size: 0.82rem;">
-              <i class="bi bi-printer"></i> මෙම වැඩසටහන් වාර්තාව මුද්‍රණය
-            </button>
-            <span style="font-size: 0.78rem; color: #94A3B8; display: inline-flex; align-items: center; gap: 0.3rem;">
-              <i class="bi bi-shield-check" style="color: #34D399;"></i> Google Drive සත්‍යාපිතයි
-            </span>
-          </div>
+      <h3 class="editorial-activity-title">${titleText}</h3>
+      ${galleryHtml}
+      <p class="editorial-activity-desc">${descText}</p>
+      <div class="editorial-activity-footer">
+        <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
+          ${photoCount > 0 ? `<button class="btn-glass btn-view-gallery" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: #38BDF8; font-size: 0.82rem; padding: 0.45rem 1rem;"><i class="bi bi-images"></i> (${photoCount})</button>` : ""}
+          <button class="btn-glass btn-print-activity" data-act-id="${act.id}" style="padding: 0.45rem 1rem; font-size: 0.82rem;"><i class="bi bi-printer"></i></button>
         </div>
-
-        <!-- Right: Uncropped Curated Photo Gallery Layout -->
-        <div>
-          ${galleryHtml}
-        </div>
+        <span class="activity-sabha" title="${act.sabhaNameSi || ""}"><i class="bi bi-building"></i> ${act.sabhaNameSi || ""}</span>
       </div>
     `;
 
-    // Bind photo click events to open full lightbox
     const actPhotosForLightbox = photos.map(p => ({
       url: p.full || p.thumbnail,
       titleSi: act.titleSi,
@@ -2310,12 +2127,12 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       sabhaNameSi: act.sabhaNameSi,
       categoryNameSi: act.categoryNameSi,
       locationSi: act.locationSi || act.gnNameSi,
-      beneficiaries: act.beneficiaries || "ගම්වාසීන්",
+      beneficiaries: act.beneficiaries || "",
       progress: 100,
       actId: act.id
     }));
 
-    const photoItems = article.querySelectorAll(".activity-article-photo-item");
+    const photoItems = article.querySelectorAll(".photo-collage-item");
     photoItems.forEach(item => {
       item.addEventListener("click", () => {
         const pIdx = parseInt(item.getAttribute("data-photo-idx"), 10) || 0;
