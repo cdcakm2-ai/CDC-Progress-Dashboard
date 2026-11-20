@@ -4229,7 +4229,20 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
   renderAnDivisionsSubtab(filtered = null) {
     const tbody = document.getElementById("anDivisionsTableBody");
     if (!tbody) return;
-
+    if (!filtered && typeof this.getFilteredAnalyticsData === "function") filtered = this.getFilteredAnalyticsData();
+    const topEl = document.getElementById("anTopPerformersText");
+    if (topEl && filtered && Array.isArray(filtered.topDivisions)) {
+      const medals = ["🥇 ", "🥈 ", "🥉 "];
+      const top6 = filtered.topDivisions.slice(0, 6);
+      topEl.textContent = top6.length > 0 ? top6.map((d, i) => `${medals[i] || ""}${d.nameSi} (${d.totalProjects || 0})`).join(" • ") : "දත්ත නොමැත";
+    }
+    const covEl = document.getElementById("anDivisionsCoverageTitle");
+    if (covEl && filtered && filtered.kpis) {
+            const totalGn = (this.data.gnDivisions || []).length || 63;
+      const activeDivs = filtered.kpis.activeDivisionsCount ?? (filtered.divisions ? filtered.divisions.length : 0);
+      const pctStr = activeDivs >= totalGn ? "100%" : (filtered.kpis.coveragePct || `${((activeDivs / totalGn) * 100).toFixed(1)}%`);
+      covEl.innerHTML = activeDivs >= totalGn ? `<i class="bi bi-check-circle-fill"></i> සියලු වසම් ${totalGn}ම සම්පූර්ණ ආවරණය (100% Complete)` : `<i class="bi bi-check-circle-fill"></i> වසම් ${activeDivs} / ${totalGn} ආවරණය (${pctStr} Complete)`;
+    }
     let divs = [...(this.data.gnDivisions || [])];
 
     // Search filter
