@@ -23,6 +23,7 @@ html, body {
   min-height: 100vh;
   display: flex;
   position: relative;
+  z-index: auto;
 }
 
 .app-main {
@@ -87,6 +88,8 @@ html, body {
 
   .app-main {
     margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .mobile-sidebar-toggle {
