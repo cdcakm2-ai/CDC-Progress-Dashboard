@@ -2875,7 +2875,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
         `;
 
         excelRows.push([idx + 1, p.titleSi, p.gnDivision, p.date, p.locationSi || p.gnDivision, p.captionSi, `${p.progress || 100}%`, p.url]);
-        csvData += `${idx + 1},"${p.titleSi}","${p.gnDivision}","${p.date}","${p.locationSi || p.gnDivision}","${(p.captionSi || '').replace(/"/g, '""')}",${{p.progress || 100}%,"${p.url}"\n`;
+        csvData += `${idx + 1},"${p.titleSi}","${p.gnDivision}","${p.date}","${p.locationSi || p.gnDivision}","${(p.captionSi || '').replace(/"/g, '""')}",${p.progress || 100}%,"${p.url}"\n`;
       });
 
       bodyHtml = `
