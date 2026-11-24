@@ -670,9 +670,11 @@ class PssCharts {
   /**
    * 8. Analytics: Weekday & Weekend Analysis Charts
    */
-  renderAnTimelineCharts() {
+  renderAnTimelineCharts(weekdaysArg = null) {
     if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAnTimelineCharts"); return; }
-    const rawActs = this.data?.activities || [];
+ let daysList;
+    if (Array.isArray(weekdaysArg) && weekdaysArg.length === 7) daysList = weekdaysArg; else {
+      const rawActs = this.data?.activities || [];
     const weekdayMap = {
       0: { daySi: "ඉරිදා", count: 0, isWeekend: true, color: "#EA580C" },
       1: { daySi: "සඳුදා", count: 0, isWeekend: false, color: "#2563EB" },
@@ -685,13 +687,12 @@ class PssCharts {
 
     rawActs.forEach(a => {
       try {
-        const d = new Date(a.date);
-        const dayIdx = d.getDay();
+      const parts = String(a.date || "").trim().slice(0, 10).split(/[-/]/); const [yy, mm, dd] = parts.map(Number); const dayIdx = (parts.length === 3 && parts[0].length === 4 && !isNaN(yy) && !isNaN(mm) && !isNaN(dd)) ? new Date(Date.UTC(yy, mm - 1, dd)).getUTCDay() : new Date(a.date).getUTCDay();;
         if (weekdayMap[dayIdx]) weekdayMap[dayIdx].count++;
       } catch {}
     });
 
-    const daysList = [weekdayMap[1], weekdayMap[2], weekdayMap[3], weekdayMap[4], weekdayMap[5], weekdayMap[6], weekdayMap[0]];
+     daysList = [weekdayMap[1], weekdayMap[2], weekdayMap[3], weekdayMap[4], weekdayMap[5], weekdayMap[6], weekdayMap[0]];}
     const weekdaysTotal = daysList.filter(d => !d.isWeekend).reduce((acc, d) => acc + d.count, 0);
     const weekendsTotal = daysList.filter(d => d.isWeekend).reduce((acc, d) => acc + d.count, 0);
     const grandTotal = Math.max(1, weekdaysTotal + weekendsTotal);
