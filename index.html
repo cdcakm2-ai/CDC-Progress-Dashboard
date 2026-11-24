@@ -725,28 +725,28 @@
               <div class="glass-panel" style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                   <div class="glass-badge gold" style="margin-bottom: 0.6rem;"><i class="bi bi-arrow-left-right"></i> ප්‍රධාන මාසික සංසන්දනය</div>
-                  <h4 style="font-size: 1.08rem; font-weight: 700; color: #FFF; margin-bottom: 0.8rem;">අගෝස්තු හා  සැසඳීම</h4>
+                  <h4 id="anMomCompareHeading" style="font-size: 1.08rem; font-weight: 700; color: #FFF; margin-bottom: 0.8rem;">&#x0DC3;&#x0DD0;&#x0DB4;&#x0DCA;&#x0DAD;&#x0DD0;&#x0DB8;&#x0DCA;&#x0DB6;&#x0DBB;&#x0DCA; හා  සැසඳීම</h4>
                   
                   <div style="background: rgba(255, 255, 255, 0.04); padding: 0.85rem; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 0.8rem;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #94A3B8;">
-                      <span>අගෝස්තු 2026 (උපරිම මාසය)</span>
-                      <strong style="color: #FDE68A;">වැඩසටහන් 49</strong>
+                      <span id="anMomPrevLabel">&#x0DC3;&#x0DD0;&#x0DB4;&#x0DCA;&#x0DAD;&#x0DD0;&#x0DB8;&#x0DCA;&#x0DB6;&#x0DBB;&#x0DCA; 2026 (&#x0DB4;&#x0DD9;&#x0DBB; &#x0DB8;&#x0DCF;&#x0DC3;&#x0DBA;)</span>
+                      <strong id="anMomPrevCount"  style="color: #FDE68A;">වැඩසටහන් 47</strong>
                     </div>
                     <div style="font-size: 0.74rem; color: #CBD5E1;">වසම්27 ක් වාර්තා කළේය (දින 23ක් සක්‍රියයි)</div>
                   </div>
 
                   <div style="background: rgba(255, 255, 255, 0.04); padding: 0.85rem; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 0.8rem;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #94A3B8;">
-                      <span> 2026 (වත්මන් මාසය)</span>
-                      <strong style="color: #67E8F9;">වැඩසටහන් 54</strong>
+                      <span id="anMomCurrLabel">  &#x0D94;&#x0D9A;&#x0DCA;&#x0DAD;&#x0DDD;&#x0DB8;&#x0DCA;&#x0DB6;&#x0DBB;&#x0DCA;2026 (වත්මන් මාසය)</span>
+                      <strong id="anMomCurrCount"  style="color: #67E8F9;">වැඩසටහන් 54</strong>
                     </div>
                     <div style="font-size: 0.74rem; color: #CBD5E1;">වසම් 24 ක් වාර්තා කළේය (දින 24ක් සක්‍රියයි)</div>
                   </div>
 
-                  <div style="background: rgba(239, 68, 68, 0.08); padding: 0.75rem; border-radius: 10px; border: 1px solid rgba(239, 68, 68, 0.25);">
+                  <div id="anMomBox" style="background: rgba(16, 185, 129, 0.08); padding: 0.75rem; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.25);">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="font-size: 0.8rem; color: #FCA5A5;">මාසික වර්ධන වේගය (MoM):</span>
-                      <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171; font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 6px;">+10.2% අඩුවීමක්</span>
+                      <span id="anMomSublabel" style="font-size: 0.8rem; color: #6EE7B7;">මාසික වර්ධන වේගය (MoM):</span>
+                      <span id="anMomVal" class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34D399; font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 6px;">+14.9% &#x0DC0;&#x0DD0;&#x0DA9;&#x0DD2;&#x0DC0;&#x0DD3;&#x0DB8;&#x0D9A;&#x0DCA;</span>
                     </div>
                   </div>
                 </div>
@@ -788,7 +788,7 @@
               <div class="glass-panel" style="padding: 1.1rem; border-left: 4px solid #10B981;">
                 <div style="font-size: 0.78rem; color: #94A3B8;">වැඩිම වැඩසටහන් වාර්තා වූ මාසය</div>
                 <div style="font-size: 1.3rem; font-weight: 800; color: #6EE7B7;">ජූලි 2026</div>
-                <div style="font-size: 0.8rem; color: #CBD5E1;">වැඩසටහන් 111 ක් (දින 29ක් තුළ)</div>
+                <div style="font-size: 0.8rem; color: #CBD5E1;">වැඩසටහන් 101 ක් (දින 29ක් තුළ)</div>
               </div>
               <div class="glass-panel" style="padding: 1.1rem; border-left: 4px solid #F59E0B;">
                 <div style="font-size: 0.78rem; color: #94A3B8;">ආරම්භක / අඩුම මාසය</div>
@@ -1245,7 +1245,7 @@
                 </ul>
               </div>
               <div style="background: rgba(255, 255, 255, 0.04); padding: 0.9rem; border-radius: 8px; border: 1px solid rgba(212, 175, 55, 0.2); font-size: 0.82rem; color: #FDE68A;">
-                <i class="bi bi-check-circle-fill"></i> තහවුරු කළ දිනය: 2026  30 • ප්‍රාදේශීය ලේකම් කාර්යාලය, අක්මීමන.
+                <i class="bi bi-check-circle-fill"></i> තහවුරු කළ දිනය: 2026 &#x0DB1;&#x0DDC;&#x0DC0;&#x0DD0;&#x0DB8;&#x0DCA;&#x0DB6;&#x0DBB;&#x0DCA; 24•  ප්‍රාදේශීය ලේකම් කාර්යාලය, අක්මීමන.
               </div>
             </div>
           </div>
@@ -1906,6 +1906,6 @@
   <script src="js/data.js?v=20261120v5"></script>
   <script src="js/sheets-service.js?v=20261120v5"></script>
   <script src="js/charts.js?v=20261120v13"></script>
-  <script src="js/app.js?v=29"></script>
+  <script src="js/app.js?v=30"></script>
 </body>
 </html>
