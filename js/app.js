@@ -4220,6 +4220,47 @@ try { this.renderAnDeepdiveSubtab(filtered); } catch (e) { console.error(e); }
     if (window.pssCharts) {
       window.pssCharts.renderAnMonthlyTrendChart(this.data.monthlyStats);
     }
+try {
+      const monthlyData = (filtered && filtered.monthlyStats && filtered.monthlyStats.length) ? filtered.monthlyStats : (this.data.monthlyStats || []);
+      if (monthlyData.length >= 2) {
+        const siMonths = {
+          '01': 'ජනවාරි', '02': 'පෙබරවාරි', '03': 'මාර්තු', '04': 'අප්‍රේල්',
+          '05': 'මැයි', '06': 'ජූනි', '07': 'ජූලි', '08': 'අගෝස්තු',
+          '09': 'සැප්තැම්බර්', '10': 'ඔක්තෝම්බර්', '11': 'නොවැම්බර්', '12': 'දෙසැම්බර්'
+        };
+        const prevM = monthlyData[monthlyData.length - 2];
+        const currM = monthlyData[monthlyData.length - 1];
+        const [prevYear = '', prevMon = ''] = String(prevM.monthKey || '').split('-');
+        const [currYear = '', currMon = ''] = String(currM.monthKey || '').split('-');
+        const prevMonthNameOnly = siMonths[prevMon] || (prevM.monthSi ? String(prevM.monthSi).split(' ')[0] : prevMon);
+        const currMonthNameOnly = siMonths[currMon] || (currM.monthSi ? String(currM.monthSi).split(' ')[0] : currMon);
+        const prevCount = Number(prevM.count ?? prevM.completed ?? 0);
+        const currCount = Number(currM.count ?? currM.completed ?? 0);
+        const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+        setTxt('anMomCompareHeading', `${prevMonthNameOnly} හා සැසඳීම`);
+        setTxt('anMomPrevLabel', `${prevMonthNameOnly} ${prevYear} (පෙර මාසය)`);
+        setTxt('anMomPrevCount', `වැඩසටහන් ${prevCount}`);
+        setTxt('anMomCurrLabel', `${currMonthNameOnly} ${currYear} (වත්මන් මාසය)`);
+        setTxt('anMomCurrCount', `වැඩසටහන් ${currCount}`);
+        const pct = prevCount > 0 ? ((currCount - prevCount) / prevCount) * 100 : 0;
+        const boxEl = document.getElementById('anMomBox');
+        const subEl = document.getElementById('anMomSublabel');
+        const valEl = document.getElementById('anMomVal');
+        if (pct > 0) {
+          if (valEl) { valEl.textContent = `+${pct.toFixed(1)}% වැඩිවීමක්`; valEl.style.color = '#34D399'; valEl.style.background = 'rgba(16,185,129,0.2)'; }
+          if (boxEl) { boxEl.style.background = 'rgba(16,185,129,0.12)'; boxEl.style.borderColor = 'rgba(16,185,129,0.25)'; }
+          if (subEl) subEl.style.color = '#6EE7B7';
+        } else if (pct < 0) {
+          if (valEl) { valEl.textContent = `-${Math.abs(pct).toFixed(1)}% අඩුවීමක්`; valEl.style.color = '#F87171'; valEl.style.background = 'rgba(239,68,68,0.2)'; }
+          if (boxEl) { boxEl.style.background = 'rgba(239,68,68,0.12)'; boxEl.style.borderColor = 'rgba(239,68,68,0.25)'; }
+          if (subEl) subEl.style.color = '#FCA5A5';
+        } else {
+          if (valEl) { valEl.textContent = '0.0% වෙනසක් නැත'; valEl.style.color = '#94A3B8'; valEl.style.background = 'rgba(148,163,184,0.2)'; }
+          if (boxEl) { boxEl.style.background = 'rgba(148,163,184,0.12)'; boxEl.style.borderColor = 'rgba(148,163,184,0.25)'; }
+          if (subEl) subEl.style.color = '#CBD5E1';
+        }
+      }
+    } catch (e) {}
   }
 
   // --- SUBTAB 3: ALL 63 DIVISIONS ---
