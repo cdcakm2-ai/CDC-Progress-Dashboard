@@ -148,13 +148,8 @@ class PssApp {
     try { this.renderCategoryPills(); } catch (e) { console.error("renderCategoryPills error:", e); }
     try { this.initActivitiesDivisionShowcase(); } catch (e) { console.error("initActivitiesDivisionShowcase error:", e); }
     try { this.renderActivitiesTab(); } catch (e) { console.error("renderActivitiesTab error:", e); }
+    try { this.renderGalleryTab(); } catch (e) { console.error("renderGalleryTab error:", e); }
     try { this.initReportsSystem(); } catch (e) { console.error("initReportsSystem error:", e); }
-    try { this.initAnalyticsTab(); } catch (e) { console.error("initAnalyticsTab error:", e); }
-    if (isAdmin) { try { this.renderStatusTab(); } catch (e) { console.error("renderStatusTab error:", e); } }
-    try { this.init3DTilt(); } catch (e) { console.error("init3DTilt error:", e); }
-    try { this.initAutoDriveSyncWatcher(); } catch (e) { console.error("initAutoDriveSyncWatcher error:", e); }
-    try { this.initGoogleOAuthIntegration(); } catch (e) { console.error("initGoogleOAuthIntegration error:", e); }
-
     // Initialize Charts safely after DOM is ready
     if (window.pssCharts) {
       try {
@@ -163,6 +158,11 @@ class PssApp {
         console.warn("Chart init deferred or failed gracefully:", e);
       }
     }
+    try { this.initAnalyticsTab(); } catch (e) { console.error("initAnalyticsTab error:", e); }
+    if (isAdmin) { try { this.renderStatusTab(); } catch (e) { console.error("renderStatusTab error:", e); } }
+    try { this.init3DTilt(); } catch (e) { console.error("init3DTilt error:", e); }
+    try { this.initAutoDriveSyncWatcher(); } catch (e) { console.error("initAutoDriveSyncWatcher error:", e); }
+    try { this.initGoogleOAuthIntegration(); } catch (e) { console.error("initGoogleOAuthIntegration error:", e); }
 
     // Check initial hash in URL
     const hash = window.location.hash.replace("#", "");
@@ -432,6 +432,7 @@ class PssApp {
     if (tabId === "analytics") {
       this.updateAnalyticsView();
     }
+    if (tabId === "gallery") { this.renderGalleryTab(); }
     if (tabId === "latest-month") { this.renderLatestMonthProgress(); } if (tabId === "activities") {
       this.renderActivitiesTab();
     }
@@ -1003,7 +1004,7 @@ class PssApp {
 
       card.innerHTML = `
         <div class="gallery-card-thumb-wrap">
-          <img src="${item.url}" alt="${item.titleSi}" class="gallery-card-thumb" loading="lazy" />
+          <img src="${this.resolveDriveImageUrl(item)}" referrerpolicy="no-referrer" alt="${item.titleSi}" class="gallery-card-thumb" loading="lazy" />
           <div class="activity-badge-overlay">
             <span class="glass-badge gold">
               <i class="bi bi-geo-alt-fill"></i> ${item.gnDivision}
@@ -1591,7 +1592,8 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
   }
 
   // --- Activity Card Builder with Direct Photo Gallery on the Page ---
-  resolveDriveImageUrl(p) { if (!p) return ""; let raw = ""; if (typeof p === "string") { raw = p.trim(); } else if (typeof p === "object") { raw = String(p.thumbnail || p.full || p.url || p.src || p.webContentLink || p.link || "").trim(); if (!raw && p.id && typeof p.id === "string" && /^[a-zA-Z0-9_-]{15,}$/.test(p.id.trim())) raw = p.id.trim(); } if (!raw) return ""; if (raw.includes("drive.google.com")) { if (raw.includes("/thumbnail?") || raw.includes("lh3.googleusercontent.com")) return raw; const m = raw.match(/\/d\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/); if (m && m[1]) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`; } if (/^[a-zA-Z0-9_-]{20,}$/.test(raw) && !raw.includes("/") && !raw.includes(".")) return `https://drive.google.com/thumbnail?id=${raw}&sz=w800`; return raw; } buildPhotoCollageHTML(photosOrAct, title = "") { const rawPhotos = Array.isArray(photosOrAct) ? photosOrAct : (photosOrAct && typeof photosOrAct === "object" ? (photosOrAct.photoObjects || photosOrAct.photos || photosOrAct.images || photosOrAct.photoUrls || []) : []); const photos = rawPhotos.map(p => this.resolveDriveImageUrl(p)).filter(Boolean);
+  resolveDriveImageUrl(p) { if (!p) return ""; let raw = ""; let fid = ""; if (typeof p === "string") { raw = p.trim(); } else if (typeof p === "object") { raw = String(p.thumbnailUrl || p.fullUrl || p.url || p.thumbnail || p.full || p.driveUrl || p.src || p.webContentLink || p.link || "").trim(); if (p.driveFileId && typeof p.driveFileId === "string") fid = p.driveFileId.trim(); else if (p.id && typeof p.id === "string" && /^[a-zA-Z0-9_-]{15,}$/.test(p.id.trim())) fid = p.id.trim(); } if (!fid && raw) { if (raw.includes("drive.google.com") || raw.includes("lh3.googleusercontent.com")) { const m = raw.match(/\/d\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/); if (m && m[1]) fid = m[1]; } else if (/^[a-zA-Z0-9_-]{20,}$/.test(raw) && !raw.includes("/") && !raw.includes(".")) { fid = raw; } } if (fid) return `https://lh3.googleusercontent.com/d/${fid}=w1200-h800`; return raw; }
+   buildPhotoCollageHTML(photosOrAct, title = "") { const rawPhotos = Array.isArray(photosOrAct) ? photosOrAct : (photosOrAct && typeof photosOrAct === "object" ? (photosOrAct.photoObjects || photosOrAct.photos || photosOrAct.images || photosOrAct.photoUrls || []) : []); const photos = rawPhotos.map(p => this.resolveDriveImageUrl(p)).filter(Boolean);
     if (!Array.isArray(photos) || photos.length === 0) return "";
     const total = photos.length;
     const countClass = total === 1 ? "collage-count-1" : total === 2 ? "collage-count-2" : total === 3 ? "collage-count-3" : total === 4 ? "collage-count-4" : "collage-count-many";
@@ -1600,7 +1602,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     const itemsHtml = visible.map((p, idx) => {
       const src = typeof p === "string" ? p : (p.thumbnail || p.full || p.url || "");
       const moreBadge = "";
-      return `<div class="photo-collage-item" data-photo-idx="${idx}" title="${safeTitle}"><img src="${src}" alt="${safeTitle}" loading="lazy">${moreBadge}</div>`;
+      return `<div class="photo-collage-item" data-photo-idx="${idx}" title="${safeTitle}"><img src="${src}" referrerpolicy="no-referrer" alt="${safeTitle}" loading="lazy">${moreBadge}</div>`;
     }).join("");
     return `<div class="photo-collage ${countClass}">${itemsHtml}</div>`;
   }
@@ -2859,7 +2861,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       galleryItems.forEach((p, idx) => {
         photoCardsHtml += `
           <div class="report-photo-card">
-            <img src="${p.url}" alt="${p.titleSi}" class="report-photo-img" />
+            <img src="${this.resolveDriveImageUrl(p)}" referrerpolicy="no-referrer" alt="${p.titleSi}" class="report-photo-img" />
             <div class="report-photo-caption">
               <div style="font-size: 0.74rem; color: #1D4ED8; font-weight: 700; margin-bottom: 2px;">
                 ${p.gnDivision} • ${p.date} • ප්‍රගතිය: ${p.progress || 100}%
@@ -3490,7 +3492,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
           item.style.background = "#020617";
           item.title = "විශාල කර බලන්න (සම්පූර්ණ ඡායාරූපය)";
           item.innerHTML = `
-            <img src="${p.thumbnail || p.full}" alt="${activity.titleSi}" class="act-photo-img" loading="lazy" style="object-fit: contain; width: 100%; height: 100%; background: #020617;" />
+            <img src="${this.resolveDriveImageUrl(p)}" referrerpolicy="no-referrer" alt="${activity.titleSi}" class="act-photo-img" loading="lazy" style="object-fit: contain; width: 100%; height: 100%; background: #020617;" />
             <div class="act-photo-zoom-overlay"><i class="bi bi-arrows-fullscreen"></i></div>
           `;
           item.addEventListener("click", () => {
@@ -3583,7 +3585,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     if (!item) return;
 
     const img = document.getElementById("lightboxImg");
-    if (img) img.src = item.url;
+    if (img) { img.referrerPolicy = "no-referrer"; img.src = this.resolveDriveImageUrl(item); }
     const titleEl = document.getElementById("lightboxTitle");
     if (titleEl) titleEl.textContent = item.titleSi;
     const captionEl = document.getElementById("lightboxCaption");
