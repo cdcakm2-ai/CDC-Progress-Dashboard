@@ -15,9 +15,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
   <!-- Application Stylesheets -->
-  <link rel="stylesheet" href="css/style.css?v=11.0" />
-  <link rel="stylesheet" href="css/glassmorphism.css?v=11.0" />
-  <link rel="stylesheet" href="css/responsive.css?v=11.0" />
+  <link rel="stylesheet" href="css/style.css?v=20261120v5" />
+  <link rel="stylesheet" href="css/glassmorphism.css?v=21" />
+  <link rel="stylesheet" href="css/responsive.css?v=20261120v5" />
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -59,9 +59,7 @@
     <aside class="app-sidebar">
       <div class="sidebar-brand-box">
         <div class="sidebar-emblem" title="ශ්‍රී ලංකා ජාතික ලාංඡනය">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2L15 8L21 9L16.5 14L18 20L12 17L6 20L7.5 14L3 9L9 8L12 2Z" fill="currentColor"/>
-          </svg>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Emblem_of_Sri_Lanka.svg" alt="ශ්‍රී ලංකා රාජ්‍ය ලාංඡනය" style="width: 36px; height: auto; object-fit: contain;">
         </div>
         <div class="sidebar-brand-text">
           <span class="sidebar-brand-sub">අක්මීමන ප්‍රා.ලේ. කාර්යාලය</span>
@@ -79,45 +77,38 @@
           <span>1. සමස්ත ප්‍රගතිය</span>
         </button>
 
-        <!-- 2. මාසික ප්‍රගතිය -->
-        <button class="nav-tab-btn" data-tab="monthly">
-          <span class="nav-icon-badge"><i class="bi bi-calendar3-range"></i></span>
-          <span>2. මාසික ප්‍රගතිය</span>
-          <span class="tab-badge">11 මාස</span>
+        <!-- 2. අලුත්ම මාසයේ ප්‍රගතිය -->
+        <button class="nav-tab-btn" data-tab="latest-month">
+          <span class="nav-icon-badge"><i class="bi bi-calendar-check"></i></span>
+          <span id="sideLatestMonthLabel">2. අලුත්ම මාසයේ ප්‍රගතිය</span>
         </button>
 
-        <!-- 3. වසම් අනුව ප්‍රගතිය -->
-        <button class="nav-tab-btn" data-tab="divisions">
-          <span class="nav-icon-badge"><i class="bi bi-diagram-3"></i></span>
-          <span>3. වසම් අනුව ප්‍රගතිය</span>
-          <span class="tab-badge" id="sideDivisionsBadge">63</span>
-        </button>
 
-        <!-- 4. වැඩසටහන් විස්තර -->
+        <!-- 3. වැඩසටහන් විස්තර -->
         <button class="nav-tab-btn" data-tab="activities">
           <span class="nav-icon-badge"><i class="bi bi-card-checklist"></i></span>
-          <span>4. වැඩසටහන් විස්තර</span>
-          <span class="tab-badge" id="sideActivitiesBadge">442</span>
+          <span>3. වැඩසටහන් විස්තර</span>
+          <span class="tab-badge" id="sideActivitiesBadge">488</span>
         </button>
 
-        <!-- 5. ප්‍රගති විශ්ලේෂණය -->
+        <!-- 4. ප්‍රගති විශ්ලේෂණය -->
         <button class="nav-tab-btn" data-tab="analytics">
           <span class="nav-icon-badge"><i class="bi bi-bar-chart-steps"></i></span>
-          <span>5. ප්‍රගති විශ්ලේෂණය</span>
+          <span>4. ප්‍රගති විශ්ලේෂණය</span>
         </button>
 
         <div class="sidebar-nav-label" style="margin-top: 0.8rem;">ලේඛන හා පද්ධතිය</div>
 
-        <!-- 6. වාර්තා හා බාගත කිරීම් -->
+        <!-- 5. වාර්තා හා බාගත කිරීම් -->
         <button class="nav-tab-btn" data-tab="reports">
           <span class="nav-icon-badge"><i class="bi bi-file-earmark-arrow-down"></i></span>
-          <span>6. වාර්තා හා බාගත කිරීම්</span>
+          <span>5. වාර්තා හා බාගත කිරීම්</span>
         </button>
 
-        <!-- 7. දත්ත යාවත්කාලීන තත්ත්වය -->
-        <button class="nav-tab-btn" data-tab="status">
+        <!-- 6. දත්ත යාවත්කාලීන තත්ත්වය -->
+        <button class="nav-tab-btn admin-only" data-tab="status" style="display: none;">
           <span class="nav-icon-badge"><i class="bi bi-arrow-repeat"></i></span>
-          <span>7. දත්ත යාවත්කාලීන තත්ත්වය</span>
+          <span>6. දත්ත යාවත්කාලීන තත්ත්වය</span>
         </button>
       </nav>
 
@@ -125,7 +116,7 @@
       <div class="sidebar-footer">
         <div class="sidebar-status-pill">
           <span class="status-indicator-dot"></span>
-          <span>පද්ධතිය සක්‍රියයි (2024 චක්‍රය)</span>
+          <span>පද්ධතිය සක්‍රියයි (2026 චක්‍රය)</span>
         </div>
       </div>
     </aside>
@@ -165,7 +156,7 @@
           </div>
 
           <!-- Google Cloud OAuth 2.0 Quick Status Pill -->
-          <div id="topbarGoogleAuthStatus" class="topbar-auth-pill" style="display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(66, 133, 244, 0.12); border: 1px solid rgba(66, 133, 244, 0.3); border-radius: 999px; padding: 0.4rem 0.85rem; font-size: 0.76rem; color: #93C5FD; cursor: pointer; text-decoration: none; transition: all 0.2s ease;" title="Google Cloud OAuth 2.0 තත්ත්වය">
+          <div id="topbarGoogleAuthStatus" class="topbar-auth-pill admin-only" style="display: none; align-items: center; gap: 0.45rem; background: rgba(66, 133, 244, 0.12); border: 1px solid rgba(66, 133, 244, 0.3); border-radius: 999px; padding: 0.4rem 0.85rem; font-size: 0.76rem; color: #93C5FD; cursor: pointer; text-decoration: none; transition: all 0.2s ease;" title="Google Cloud OAuth 2.0 තත්ත්වය">
             <i class="bi bi-google"></i>
             <span id="topbarGoogleAuthText">OAuth 2.0 Ready</span>
           </div>
@@ -234,7 +225,7 @@
                 <div class="hp-meta-grid">
                   <div class="hp-meta-item">
                     <div class="hp-meta-label">සම්පූර්ණ වූ වැඩසටහන්</div>
-                    <div class="hp-meta-val" id="hpCompletedCount" style="color: #60A5FA;">442 වැඩසටහන්</div>
+                    <div class="hp-meta-val" id="hpCompletedCount" style="color: #60A5FA;">488 වැඩසටහන්</div>
                   </div>
                   <div class="hp-meta-item">
                     <div class="hp-meta-label">වාර්තා කළ වසම්</div>
@@ -254,11 +245,10 @@
                 <div class="stat-icon-wrap"><i class="bi bi-briefcase-fill"></i></div>
               </div>
               <div class="stat-number-wrap">
-                <span class="stat-number" id="kpiTotalActivities">442</span>
+                <span class="stat-number" id="kpiTotalActivities">488</span>
               </div>
               <div class="stat-subtext">
                 <span class="glass-badge emerald" style="padding: 0.15rem 0.55rem; font-size: 0.72rem;"><i class="bi bi-check-circle-fill"></i> 100% සම්පූර්ණයි</span>
-                <span>(අනුපිටපත් 75ක් ඉවත් කළ පසු)</span>
               </div>
             </div>
 
@@ -288,7 +278,7 @@
                 </div>
               </div>
               <div class="stat-number-wrap">
-                <span class="stat-number" id="kpiActiveDays">185</span>
+                <span class="stat-number" id="kpiActiveDays">206</span>
               </div>
               <div class="stat-subtext">
                 <span class="glass-badge amber" style="padding: 0.15rem 0.55rem; font-size: 0.72rem;"><i class="bi bi-calendar-week"></i> ක්‍රියාකාරී දින</span>
@@ -303,7 +293,7 @@
                 <div class="stat-icon-wrap"><i class="bi bi-images"></i></div>
               </div>
               <div class="stat-number-wrap">
-                <span class="stat-number" id="kpiTotalPhotos">1,419</span>
+                <span class="stat-number" id="kpiTotalPhotos">1,613</span>
               </div>
               <div class="stat-subtext">
                 <span class="glass-badge teal" style="padding: 0.15rem 0.55rem; font-size: 0.72rem;"><i class="bi bi-camera-fill"></i> Drive සත්‍යාපිත</span>
@@ -313,26 +303,7 @@
           </div>
 
           <!-- Overview Split: Latest Reported Month Progress & Summary Sector Breakdown -->
-          <div class="overview-latest-month-split-grid" style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-            <!-- Latest Reported Month Progress Card -->
-            <div class="glass-panel" style="padding: 1.6rem; display: flex; flex-direction: column;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.5rem;">
-                <div>
-                  <div style="font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; color: #38BDF8; font-weight: 700; margin-bottom: 0.2rem;">
-                    <i class="bi bi-calendar-check-fill"></i> අවසන් වාර්තාකරණ කාලසීමාව
-                  </div>
-                  <h4 style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
-                    <i class="bi bi-activity text-blue"></i> දැනට දත්ත ලැබී ඇති අවසන් මාසයේ ප්‍රගතිය
-                  </h4>
-                </div>
-                <button class="btn-glass" data-nav-target="monthly" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
-                  <i class="bi bi-arrow-right-circle"></i> මාසික වාර්තා
-                </button>
-              </div>
-              <div id="latestMonthProgressContainer">
-                <!-- Dynamically populated with Latest Month KPIs, Divisions, and Progress -->
-              </div>
-            </div>
+          <div class="overview-latest-month-split-grid" style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 2rem;">
 
             <!-- Mini Sector Pie -->
             <div class="glass-panel" style="padding: 1.6rem; display: flex; flex-direction: column;">
@@ -347,203 +318,30 @@
         </section>
 
         <!-- ========================================== -->
-        <!-- TAB 2: මාසික ප්‍රගතිය (MONTHLY PROGRESS) -->
-        <!-- ========================================== -->
-        <section class="tab-view" id="view-monthly">
-          <div class="tab-header-box">
-            <div class="tab-title-wrap">
-              <span class="tab-kicker"><i class="bi bi-calendar3-range"></i> කාලානුක්‍රමික ප්‍රගති නිරීක්ෂණය</span>
-              <h1 class="tab-main-heading">මාසික ප්‍රගතිය සහ ක්‍රියාත්මක වීමේ වේගය</h1>
-              <p class="tab-main-subtext">2025 නොවැම්බර් සිට 2026 ඔක්තෝබර් දක්වා මාසිකව ප්‍රජා සංවර්ධන සභා මගින් ක්‍රියාත්මක කරන ලද වැඩසටහන් සහ ප්‍රගතිය.</p>
+        <!-- TAB 2: අලුත්ම මාසයේ ප්‍රගතිය (LATEST MONTH) -->
+      <!-- ========================================== -->
+      <section id="view-latest-month" class="tab-view">
+        <div class="glass-panel" style="padding: 1.6rem; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <div style="font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; color: #38BDF8; font-weight: 700; margin-bottom: 0.2rem;">
+                <i class="bi bi-calendar-check-fill"></i> මාසික ප්‍රගති සමාලෝචනය
+              </div>
+              <h4 style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+                <i class="bi bi-activity text-blue"></i> අවසන් වරට දත්ත ලැබී ඇති මාසයේ තොරතුරු
+              </h4>
             </div>
+            <button class="btn-glass" data-nav-target="analytics" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
+              <i class="bi bi-arrow-right-circle"></i> සම්පූර්ණ විශ්ලේෂණය
+            </button>
           </div>
-
-          <!-- Sub-tabs bar for Monthly -->
-          <div class="subtabs-bar" data-section="monthly">
-            <button class="subtab-btn active" data-subtab="chart"><i class="bi bi-graph-up"></i> ප්‍රස්ථාර විශ්ලේෂණය</button>
-            <button class="subtab-btn" data-subtab="table"><i class="bi bi-table"></i> මාසික සවිස්තර වගුව</button>
+          <div id="latestMonthProgressContainer">
+            <!-- Dynamically populated with Latest Month KPIs, Divisions, and Progress -->
           </div>
+        </div>
+      </section>
 
-          <!-- Monthly Subtab 1: Chart -->
-          <div class="subtab-content active" data-section="monthly" data-content="chart">
-            <div class="chart-card glass-panel" style="height: 420px; margin-bottom: 2rem;">
-              <div class="chart-header">
-                <h3 class="chart-title"><i class="bi bi-graph-up text-blue"></i> මාසික වැඩසටහන් ක්‍රියාත්මක වීම සහ සක්‍රියතා වර්ධනය</h3>
-                <span class="glass-badge gold">2025 නොවැ - 2026 ඔක් (මාස 11)</span>
-              </div>
-              <div class="chart-canvas-wrap">
-                <canvas id="monthlyProgressChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Monthly Subtab 2: Table -->
-          <div class="subtab-content" data-section="monthly" data-content="table">
-            <div class="table-card glass-panel">
-              <table class="comparison-table">
-                <thead>
-                  <tr>
-                    <th>මාසය</th>
-                    <th style="text-align: center;">සිදුකළ වැඩසටහන්</th>
-                    <th style="text-align: center;">සක්‍රිය දින ගණන</th>
-                    <th style="text-align: center;">වාර්තා කළ වසම්</th>
-                    <th style="text-align: center;">සමුච්චිත එකතුව</th>
-                    <th style="text-align: center;">ප්‍රගති තත්ත්වය</th>
-                  </tr>
-                </thead>
-                <tbody id="monthlyTableBody">
-                  <!-- Dynamically populated -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <!-- ========================================== -->
-        <!-- TAB 3: වසම් අනුව ප්‍රගතිය (GN DIVISION PROGRESS & GALLERY) -->
-        <!-- ========================================== -->
-        <section class="tab-view" id="view-divisions">
-          <div class="tab-header-box">
-            <div class="tab-title-wrap">
-              <span class="tab-kicker"><i class="bi bi-diagram-3"></i> ග්‍රාම නිලධාරී වසම් 63 හි ප්‍රගති නාමාවලිය</span>
-              <h1 class="tab-main-heading">වසම් අනුව සංවර්ධන වැඩසටහන් හා ගැලරිය</h1>
-              <p class="tab-main-subtext">අක්මීමන කොට්ඨාසයේ සියලුම ග්‍රාම නිලධාරී වසම් 63 හි ප්‍රජා සංවර්ධන සභා වැඩසටහන්, ප්‍රගතිය සහ ඡායාරූප.</p>
-            </div>
-            <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
-              <!-- Search inside GN Divisions -->
-              <div class="search-input-wrap" style="width: 240px;">
-                <i class="bi bi-search"></i>
-                <input type="text" id="gnDivisionSearchInput" class="glass-input" placeholder="වසමේ නමින් සොයන්න..." style="width: 100%; border-radius: 999px;" />
-              </div>
-              <!-- Quick Jump Dropdown -->
-              <div style="display: flex; align-items: center; gap: 0.4rem;">
-                <select id="tab3GnJumpDropdown" class="glass-select" style="min-width: 260px; border-radius: 999px; font-size: 0.86rem; padding: 0.5rem 1rem;">
-                  <option value="">🏛️ වසමක් තෝරා ක්ෂණිකව පිවිසෙන්න...</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- DEDICATED DIVISION ACTIVITY VIEW (Shown when a division card is selected) -->
-          <div id="divisionDedicatedView" class="division-dedicated-container" style="display: none; margin-bottom: 2.5rem;">
-            <!-- Back button & Top Bar -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 1rem;">
-              <button id="btnBackToAllDivisions" class="btn-glass" style="padding: 0.5rem 1.2rem; font-weight: 700;">
-                <i class="bi bi-arrow-left"></i> සියලු වසම් 63 වෙත ආපසු
-              </button>
-              <div style="display: flex; gap: 0.8rem;">
-                <button id="btnPrintDedicatedDivisionReport" class="btn-gold" style="padding: 0.5rem 1.2rem; font-size: 0.86rem;">
-                  <i class="bi bi-printer"></i> මෙම වසමේ සම්පූර්ණ වාර්තාව (PDF / Print)
-                </button>
-              </div>
-            </div>
-
-            <!-- Dedicated Division Summary Glass Banner -->
-            <div class="hero-banner-card glass-panel" style="margin-bottom: 1.8rem; border-color: rgba(212, 175, 55, 0.4);">
-              <div class="hero-content">
-                <div class="hero-text-col">
-                  <div class="hero-tag">
-                    <span class="pulse-dot"></span>
-                    <span id="dedicatedDivisionBadgeText">තෝරාගත් ග්‍රාම නිලධාරී වසම</span>
-                  </div>
-                  <h2 class="hero-title" style="font-size: 1.85rem; margin-bottom: 0.4rem;">
-                    <span class="blue-text-gradient" id="dedicatedDivisionName">වසමේ නම</span>
-                  </h2>
-                  <div style="font-size: 1rem; color: #CBD5E1; margin-bottom: 1rem;" id="dedicatedDivisionSabha">
-                    ප්‍රජා සංවර්ධන සභාව
-                  </div>
-                  <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem;">
-                    <span class="glass-badge blue" id="dedicatedDivisionSector"><i class="bi bi-tag-fill"></i> ප්‍රමුඛ ක්ෂේත්‍රය</span>
-                    <span class="glass-badge gold" id="dedicatedDivisionStatus"><i class="bi bi-check-circle"></i> සක්‍රියයි</span>
-                  </div>
-                </div>
-
-                <!-- Division Progress Metric Box -->
-                <div class="hero-progress-box">
-                  <div class="hp-header">
-                    <span class="hp-title">වසමේ සමස්ත ප්‍රගතිය</span>
-                    <span class="hp-percent blue-text-gradient" id="dedicatedDivisionProgressVal">100%</span>
-                  </div>
-                  <div class="progress-track" style="margin-bottom: 1rem;">
-                    <div class="progress-fill shimmer-bar" id="dedicatedDivisionProgressFill" style="width: 100%;"></div>
-                  </div>
-                  <div class="hp-meta-grid" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="hp-meta-item">
-                      <div class="hp-meta-label">මුළු වැඩසටහන්</div>
-                      <div class="hp-meta-val" id="dedicatedDivisionTotalAct">3</div>
-                    </div>
-                    <div class="hp-meta-item">
-                      <div class="hp-meta-label">සක්‍රිය දින ගණන</div>
-                      <div class="hp-meta-val" id="dedicatedDivisionActiveDays">2</div>
-                    </div>
-                    <div class="hp-meta-item">
-                      <div class="hp-meta-label">සත්‍ය ඡායාරූප</div>
-                      <div class="hp-meta-val" id="dedicatedDivisionPhotos">8</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Dedicated Activities Heading -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
-              <h3 style="font-size: 1.25rem; font-weight: 800; color: #FFF; display: flex; align-items: center; gap: 0.6rem;">
-                <i class="bi bi-collection-fill text-blue"></i> <span id="dedicatedDivisionActivitiesHeading">මෙම වසමේ වැඩසටහන් හා ඡායාරූප</span>
-              </h3>
-              <span class="glass-badge blue" id="dedicatedDivisionActCountBadge">වැඩසටහන් 3ක්</span>
-            </div>
-
-            <!-- Grid of Activities belonging to this division -->
-            <div class="activities-grid" id="dedicatedDivisionActivitiesGrid">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-          <!-- ALL 63 DIVISIONS CONTAINER (Default View) -->
-          <div id="divisionAllListView">
-            <!-- Sub-tabs bar for Divisions -->
-            <div class="subtabs-bar" data-section="divisions">
-              <button class="subtab-btn active" data-subtab="cards"><i class="bi bi-grid"></i> වසම් 63 කාඩ්පත් දසුන</button>
-              <button class="subtab-btn" data-subtab="table"><i class="bi bi-table"></i> සංසන්දනාත්මක වගු දසුන</button>
-            </div>
-
-            <!-- Divisions Subtab 1: Cards Grid (All 63 Divisions) -->
-            <div class="subtab-content active" data-section="divisions" data-content="cards">
-              <div style="margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 0.88rem; color: #94A3B8;">
-                  <i class="bi bi-info-circle text-blue"></i> කිසියම් වසමක් තෝරා එහි සවිස්තර වැඩසටහන් හා ඡායාරූප නැරඹීමට කාඩ්පත මත ක්ලික් කරන්න.
-                </span>
-                <span class="glass-badge gold" id="gnDivisionsCardCounter">වසම් 63ම ඇතුළත්ය</span>
-              </div>
-              <div class="division-cards-grid" id="divisionCardsGrid">
-                <!-- Dynamically populated 63 cards -->
-              </div>
-            </div>
-
-            <!-- Divisions Subtab 2: Table -->
-            <div class="subtab-content" data-section="divisions" data-content="table">
-              <div class="table-card glass-panel">
-                <table class="comparison-table">
-                  <thead>
-                    <tr>
-                      <th>ග්‍රාම නිලධාරී වසම (වසම් 63)</th>
-                      <th>ප්‍රජා සංවර්ධන සභාව</th>
-                      <th>ප්‍රමුඛ ක්ෂේත්‍රය</th>
-                      <th style="text-align: center;">මුළු වැඩසටහන්</th>
-                      <th style="text-align: center;">සක්‍රිය දින ගණන</th>
-                      <th style="text-align: center;">ඡායාරූප ගණන</th>
-                      <th style="text-align: center;">තත්ත්වය</th>
-                      <th style="text-align: center;">ක්‍රියාමාර්ග</th>
-                    </tr>
-                  </thead>
-                  <tbody id="gnComparisonTableBody">
-                    <!-- Dynamically populated -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
+       
 
         <!-- ========================================== -->
         <!-- TAB 4: වැඩසටහන් විස්තර (PROGRAMMES DIRECTORY & DIVISION SHOWCASE) -->
@@ -560,17 +358,14 @@
           <!-- View Mode Toggle Bar (Division-First vs All-List) -->
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
             <div class="view-mode-tabs-wrap">
-              <button class="view-mode-tab-btn active" id="btnActivitiesDivisionMode" data-mode="division">
+              <button class="view-mode-tab-btn" id="btnActivitiesDivisionMode" data-mode="division">
                 <i class="bi bi-diagram-3-fill"></i> 🏛️ වසම් පිළිවෙළට සවිස්තර දැක්ම (නිර්දේශිතයි)
               </button>
-              <button class="view-mode-tab-btn" id="btnActivitiesFlatMode" data-mode="flat">
-                <i class="bi bi-list-task"></i> 📋 සියලු වැඩසටහන් නාමාවලිය (442)
+              <button class="view-mode-tab-btn active" id="btnActivitiesFlatMode" data-mode="flat">
+                <i class="bi bi-list-task"></i> 📋 සියලු වැඩසටහන් නාමාවලිය (488)
               </button>
             </div>
             
-            <div style="font-size: 0.88rem; color: #94A3B8; display: flex; align-items: center; gap: 0.5rem;">
-              <span class="glass-badge gold"><i class="bi bi-check2-circle"></i> අනුපිටපත් 75ක් ඉවත් කර නිරවුල් කළ දත්ත</span>
-            </div>
           </div>
 
           <!-- ============================================================== -->
@@ -685,15 +480,15 @@
                   <div class="hp-meta-grid" style="grid-template-columns: repeat(3, 1fr);">
                     <div class="hp-meta-item">
                       <div class="hp-meta-label">මුළු වැඩසටහන්</div>
-                      <div class="hp-meta-val text-blue" id="activeGnActivityCount">9</div>
+                      <div class="hp-meta-val text-blue" id="activeGnActivityCount">11</div>
                     </div>
                     <div class="hp-meta-item">
                       <div class="hp-meta-label">සත්‍ය ඡායාරූප</div>
-                      <div class="hp-meta-val text-blue" id="activeGnPhotoCount">48</div>
+                      <div class="hp-meta-val text-blue" id="activeGnPhotoCount">52</div>
                     </div>
                     <div class="hp-meta-item">
                       <div class="hp-meta-label">සක්‍රිය දින</div>
-                      <div class="hp-meta-val text-emerald" id="activeGnActiveDays">8</div>
+                      <div class="hp-meta-val text-emerald" id="activeGnActiveDays">11</div>
                     </div>
                   </div>
                 </div>
@@ -720,7 +515,7 @@
           </div>
 
           <!-- ============================================================== -->
-          <!-- MODE 2: FLAT DIRECTORY VIEW (Search & Filter All 403 Programs) -->
+          <!-- MODE 2: FLAT DIRECTORY VIEW (Search & Filter All 488 Programs) -->
           <!-- ============================================================== -->
           <div id="activitiesFlatModeView" style="display: none;">
             <!-- Filter Toolbar with Search, Month, Year & Status -->
@@ -739,8 +534,9 @@
 
                 <div>
                   <select id="filterYearSelect" class="glass-select" style="width: 100%;">
-                    <option value="all">සියලු වර්ෂ</option>
-                    <option value="2024" selected>2024 වර්ෂය</option>
+                    <option value="all" selected>සියලු වර්ෂ</option>
+                    <option value="2026">2026 වර්ෂය</option>
+                    <option value="2025">2025 වර්ෂය</option>
                   </select>
                 </div>
 
@@ -787,7 +583,7 @@
             </div>
             <div>
               <span class="glass-badge gold" id="analyticsPeriodBadge">
-                <i class="bi bi-calendar-check"></i> 2025 නොවැ - 2026 සැප් (මාස 11)
+                <i class="bi bi-calendar-check"></i> <span class="dynamic-period-range">2025 නොවැම්බර් – 2026 ඔක්තෝම්බර්</span> (<span class="dynamic-month-count">මාස 12</span>)
               </span>
             </div>
           </div>
@@ -814,7 +610,7 @@
               <div>
                 <label style="display: block; font-size: 0.75rem; color: #94A3B8; margin-bottom: 0.25rem;">මාසය (Month)</label>
                 <select id="analyticsMonthFilter" class="glass-select" style="width: 100%;">
-                  <option value="all">සියලු මාස (මාස 11)</option>
+                  <option value="all">සියලු මාස (මාස 12)</option>
                 </select>
               </div>
               <div>
@@ -858,7 +654,7 @@
               <div>
                 <span class="glass-badge gold" style="font-size: 0.76rem; margin-bottom: 0.3rem;"><i class="bi bi-clock-history"></i> සමුච්චිත කාල පරාසය</span>
                 <h3 style="font-size: 1.15rem; font-weight: 800; color: #FFF; margin: 0.2rem 0;">
-                  2025 නොවැම්බර් 01 සිට 2026 සැප්තැම්බර් 30 දක්වා (මාස 11 ක සමුච්චිත සමාලෝචනය)
+                  <span class="dynamic-period-range">2025 නොවැම්බර් – 2026 ඔක්තෝම්බර්</span> (<span class="dynamic-month-count">මාස 12</span> ක සමුච්චිත ප්‍රගතිය)
                 </h3>
                 <p style="font-size: 0.85rem; color: #CBD5E1; margin: 0;">අක්මීමන කොට්ඨාසයේ සියලුම ග්‍රාම නිලධාරී වසම් 63 හි ප්‍රජා සංවර්ධන සභා වැඩසටහන් සමස්ත සාරාංශය.</p>
               </div>
@@ -874,15 +670,15 @@
               <div class="kpi-card glass-panel" style="border-top: 3px solid #D4AF37;">
                 <div class="kpi-icon-wrap gold"><i class="bi bi-folder-check"></i></div>
                 <div class="kpi-title">මුළු වැඩසටහන් සංඛ්‍යාව</div>
-                <div class="kpi-value blue-text-gradient" id="anKpiTotalActs">287</div>
-                <div class="kpi-trend positive"><i class="bi bi-check2-circle"></i> <span>සැප්තැම්බර් 30 දක්වා</span></div>
+                <div class="kpi-value blue-text-gradient" id="anKpiTotalActs">488</div>
+                <div class="kpi-trend positive"><i class="bi bi-check2-circle"></i> <span class="dynamic-period-range">2025 නොවැම්බර් – 2026 ඔක්තෝම්බර්</span></div>
               </div>
               <!-- 2. Active Days -->
               <div class="kpi-card glass-panel" style="border-top: 3px solid #38BDF8;">
                 <div class="kpi-icon-wrap blue"><i class="bi bi-calendar-event"></i></div>
                 <div class="kpi-title">වැඩසටහන් පැවැත්වූ දින</div>
-                <div class="kpi-value" id="anKpiActiveDays" style="color: #38BDF8;">115</div>
-                <div class="kpi-subtext">දින 115 ක් පුරා සක්‍රියයි</div>
+                <div class="kpi-value" id="anKpiActiveDays" style="color: #38BDF8;">206</div>
+                <div class="kpi-subtext">දින 206 ක් පුරා සක්‍රියයි</div>
               </div>
               <!-- 3. Reporting Divisions -->
               <div class="kpi-card glass-panel" style="border-top: 3px solid #10B981;">
@@ -902,14 +698,14 @@
               <div class="kpi-card glass-panel" style="border-top: 3px solid #F59E0B;">
                 <div class="kpi-icon-wrap gold"><i class="bi bi-calculator"></i></div>
                 <div class="kpi-title">වසමකට සාමාන්‍යය</div>
-                <div class="kpi-value blue-text-gradient" id="anKpiAvgPerDiv">6.08</div>
+                <div class="kpi-value blue-text-gradient" id="anKpiAvgPerDiv">7.75</div>
                 <div class="kpi-subtext">වැඩසටහන් / වසමකට</div>
               </div>
               <!-- 6. Avg per Active Day -->
               <div class="kpi-card glass-panel" style="border-top: 3px solid #06B6D4;">
                 <div class="kpi-icon-wrap blue"><i class="bi bi-speedometer2"></i></div>
                 <div class="kpi-title">සක්‍රිය දිනක සාමාන්‍යය</div>
-                <div class="kpi-value" id="anKpiAvgPerDay" style="color: #67E8F9;">2.21</div>
+                <div class="kpi-value" id="anKpiAvgPerDay" style="color: #67E8F9;">2.37</div>
                 <div class="kpi-subtext">වැඩසටහන් / දිනකට</div>
               </div>
             </div>
@@ -919,45 +715,45 @@
               <div class="chart-card glass-panel" style="height: 380px;">
                 <div class="chart-header">
                   <h3 class="chart-title"><i class="bi bi-graph-up text-blue"></i> සමුච්චිත ප්‍රගති වර්ධන වක්‍රය (Cumulative Growth Curve)</h3>
-                  <span class="glass-badge blue">වැඩසටහන් 287 දක්වා</span>
+                  <span class="glass-badge blue">වැඩසටහන් 488 දක්වා</span>
                 </div>
                 <div class="chart-canvas-wrap">
                   <canvas id="anCumulativeChart"></canvas>
                 </div>
               </div>
 
-              <!-- Aug vs Sep Comparative Callout Card -->
+              <!-- Sep vs Oct Comparative Callout Card -->
               <div class="glass-panel" style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                   <div class="glass-badge gold" style="margin-bottom: 0.6rem;"><i class="bi bi-arrow-left-right"></i> ප්‍රධාන මාසික සංසන්දනය</div>
-                  <h4 style="font-size: 1.08rem; font-weight: 700; color: #FFF; margin-bottom: 0.8rem;">අගෝස්තු හා සැප්තැම්බර් සැසඳීම</h4>
+                  <h4 id="anMomCompareHeading" style="font-size: 1.08rem; font-weight: 700; color: #FFF; margin-bottom: 0.8rem;">සැප්තැම්බර් හා සැසඳීම</h4>
                   
                   <div style="background: rgba(255, 255, 255, 0.04); padding: 0.85rem; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 0.8rem;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #94A3B8;">
-                      <span>අගෝස්තු 2026 (උපරිම මාසය)</span>
-                      <strong style="color: #FDE68A;">වැඩසටහන් 78</strong>
+                      <span id="anMomPrevLabel">සැප්තැම්බර් 2026 (පෙර මාසය)</span>
+                      <strong id="anMomPrevCount"  style="color: #FDE68A;">වැඩසටහන් 48</strong>
                     </div>
-                    <div style="font-size: 0.74rem; color: #CBD5E1;">වසම් 38 ක් වාර්තා කළේය (දින 24ක් සක්‍රියයි)</div>
+                    <div id="anMomPrevMeta" style="font-size: 0.74rem; color: #CBD5E1;">වසම් 27 ක් වාර්තා කළේය (දින 22ක් සක්‍රියයි)</div>
                   </div>
 
                   <div style="background: rgba(255, 255, 255, 0.04); padding: 0.85rem; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 0.8rem;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #94A3B8;">
-                      <span>සැප්තැම්බර් 2026 (වත්මන් මාසය)</span>
-                      <strong style="color: #67E8F9;">වැඩසටහන් 40</strong>
+                      <span id="anMomCurrLabel">ඔක්තෝම්බර් 2026 (වත්මන් මාසය)</span>
+                      <strong id="anMomCurrCount"  style="color: #67E8F9;">වැඩසටහන් 54</strong>
                     </div>
-                    <div style="font-size: 0.74rem; color: #CBD5E1;">වසම් 22 ක් වාර්තා කළේය (දින 21ක් සක්‍රියයි)</div>
+                    <div id="anMomCurrMeta" style="font-size: 0.74rem; color: #CBD5E1;">වසම් 24 ක් වාර්තා කළේය (දින 24ක් සක්‍රියයි)</div>
                   </div>
 
-                  <div style="background: rgba(239, 68, 68, 0.08); padding: 0.75rem; border-radius: 10px; border: 1px solid rgba(239, 68, 68, 0.25);">
+                  <div id="anMomBox" style="background: rgba(16, 185, 129, 0.08); padding: 0.75rem; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.25);">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="font-size: 0.8rem; color: #FCA5A5;">මාසික වර්ධන වේගය (MoM):</span>
-                      <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171; font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 6px;">-48.7% අඩුවීමක්</span>
+                      <span id="anMomSublabel" style="font-size: 0.8rem; color: #6EE7B7;">මාසික වර්ධන වේගය (MoM):</span>
+                      <span id="anMomVal" class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34D399; font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 6px;">+12.5% වැඩිවීමක්</span>
                     </div>
                   </div>
                 </div>
 
                 <div style="font-size: 0.76rem; color: #94A3B8; margin-top: 0.8rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.6rem;">
-                  <i class="bi bi-info-circle text-blue"></i> Google Drive දත්ත පත්‍රිකා 2 මගින් තහවුරු කළ අනන්‍ය වැඩසටහන් 287 ක් අක්මීමන වසම් 51 ක් පුරා සාර්ථකව පවත්වා ඇත.
+                  <i class="bi bi-info-circle text-blue"></i> Google Drive දත්ත පත්‍රිකා 6 මගින් තහවුරු කළ අනන්‍ය වැඩසටහන් <span id="anMomFooterTotal">488</span> ක් අක්මීමන වසම් 63 ක් පුරා සාර්ථකව පවත්වා ඇත.
                 </div>
               </div>
             </div>
@@ -970,15 +766,15 @@
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
                 <div style="background: rgba(255, 255, 255, 0.03); padding: 0.9rem; border-radius: 10px; border-left: 3px solid #D4AF37;">
                   <strong style="color: #FDE68A; display: block; font-size: 0.88rem; margin-bottom: 0.2rem;">100% වසම් ආවරණය</strong>
-                  <p style="font-size: 0.8rem; color: #CBD5E1; margin: 0;">අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ සියලුම ග්‍රාම නිලධාරී වසම් 63 හිම අවම වශයෙන් වැඩසටහන් 3ක් හෝ ඊට වැඩි ප්‍රමාණයක් පවත්වා ඇත.</p>
+                  <p id="anExecSummaryCovText" style="font-size: 0.8rem; color: #CBD5E1; margin: 0;">අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ සියලුම ග්‍රාම නිලධාරී වසම් 63ම සක්‍රියව වාර්තා කර ඇති අතර ඉන් වසම් 59ක් වැඩසටහන් 3ක් හෝ ඊට වැඩි ප්‍රමාණයක් පවත්වා ඇත (අවමය වැඩසටහන් 2).</p>
                 </div>
                 <div style="background: rgba(255, 255, 255, 0.03); padding: 0.9rem; border-radius: 10px; border-left: 3px solid #38BDF8;">
                   <strong style="color: #7DD3FC; display: block; font-size: 0.88rem; margin-bottom: 0.2rem;">ඉහළ ක්‍රියාකාරී දින සාන්ද්‍රණය</strong>
-                  <p style="font-size: 0.8rem; color: #CBD5E1; margin: 0;">දින 115 ක් පුරා වැඩසටහන් 287 ක් පවත්වා ඇති අතර සාමාන්‍යයක් ලෙස එක් සක්‍රිය දිනයකදී වැඩසටහන් 2.50 ක් ක්‍රියාත්මක වී ඇත.</p>
+                  <p id="anExecSummaryDailyText" style="font-size: 0.8rem; color: #CBD5E1; margin: 0;">දින 206 ක් පුරා වැඩසටහන් 488 ක් පවත්වා ඇති අතර සාමාන්‍යයක් ලෙස එක් සක්‍රිය දිනයකදී වැඩසටහන් 2.37 ක් ක්‍රියාත්මක වී ඇත.</p>
                 </div>
                 <div style="background: rgba(255, 255, 255, 0.03); padding: 0.9rem; border-radius: 10px; border-left: 3px solid #10B981;">
                   <strong style="color: #86EFAC; display: block; font-size: 0.88rem; margin-bottom: 0.2rem;">ප්‍රමුඛ වසම් දායකත්වය</strong>
-                  <p style="font-size: 0.8rem; color: #CBD5E1; margin: 0;">නුගදූව (15), හියාචාර උතුර (14), ජඹුකැටිය (12), අඹගහවිල (11), නියාගම (11) ඇතුළු වසම් 11 ක් වැඩසටහන් 10ක් හෝ ඊට වැඩි ප්‍රමාණයක් සම්පූර්ණ කර ඇත.</p>
+                  <p id="anExecSummaryTopText" style="font-size: 0.8rem; color: #CBD5E1; margin: 0;">155 හියාරේ උතුර (17), 155/ඒච් කඳහේන (17), 113/බී නුගදූව (16), 109/බී ඉහළගොඩ දකුණ (16), 155/ඒෆ් කදුරුගස්හේන (16) ඇතුළු වසම් 19 ක් වැඩසටහන් 10ක් හෝ ඊට වැඩි ප්‍රමාණයක් සම්පූර්ණ කර ඇත.</p>
                 </div>
               </div>
             </div>
@@ -992,23 +788,23 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
               <div class="glass-panel" style="padding: 1.1rem; border-left: 4px solid #10B981;">
                 <div style="font-size: 0.78rem; color: #94A3B8;">වැඩිම වැඩසටහන් වාර්තා වූ මාසය</div>
-                <div style="font-size: 1.3rem; font-weight: 800; color: #6EE7B7;">අගෝස්තු 2026</div>
-                <div style="font-size: 0.8rem; color: #CBD5E1;">වැඩසටහන් 78 ක් (දින 24ක් තුළ)</div>
+                <div id="anMonthlyPeakTitle" style="font-size: 1.3rem; font-weight: 800; color: #6EE7B7;">ජූලි 2026</div>
+                <div id="anMonthlyPeakMeta" style="font-size: 0.8rem; color: #CBD5E1;">වැඩසටහන් 101 ක් (දින 29ක් තුළ)</div>
               </div>
               <div class="glass-panel" style="padding: 1.1rem; border-left: 4px solid #F59E0B;">
                 <div style="font-size: 0.78rem; color: #94A3B8;">ආරම්භක / අඩුම මාසය</div>
-                <div style="font-size: 1.3rem; font-weight: 800; color: #FCD34D;">නොවැම්බර් 2025</div>
-                <div style="font-size: 0.8rem; color: #CBD5E1;">වැඩසටහන් 14 ක් (ආරම්භක මාසය)</div>
+                <div id="anMonthlyLowTitle" style="font-size: 1.3rem; font-weight: 800; color: #FCD34D;">දෙසැම්බර් 2025</div>
+                <div id="anMonthlyLowMeta" style="font-size: 0.8rem; color: #CBD5E1;">වැඩසටහන් 3 ක් (අඩුම මාසය)</div>
               </div>
               <div class="glass-panel" style="padding: 1.1rem; border-left: 4px solid #38BDF8;">
                 <div style="font-size: 0.78rem; color: #94A3B8;">සාමාන්‍ය මාසික වැඩසටහන් වේගය</div>
-                <div style="font-size: 1.3rem; font-weight: 800; color: #38BDF8;">මසකට 34.8</div>
-                <div style="font-size: 0.8rem; color: #CBD5E1;">මාස 11 ක සාමාන්‍යය</div>
+                <div id="anMonthlyAvgVal" style="font-size: 1.3rem; font-weight: 800; color: #38BDF8;">මසකට 40.7</div>
+                <div style="font-size: 0.8rem; color: #CBD5E1;"><span class="dynamic-month-count">මාස 12</span> ක සාමාන්‍යය</div>
               </div>
               <div class="glass-panel" style="padding: 1.1rem; border-left: 4px solid #EC4899;">
-                <div style="font-size: 0.78rem; color: #94A3B8;">සැප්තැම්බර් වත්මන් තත්ත්වය</div>
-                <div style="font-size: 1.3rem; font-weight: 800; color: #F472B6;">වැඩසටහන් 40</div>
-                <div style="font-size: 0.8rem; color: #FCA5A5;">MoM: -48.7% (අගෝස්තු 78 සිට)</div>
+                <div style="font-size: 0.78rem; color: #94A3B8;">වත්මන් තත්ත්වය</div>
+                <div id="anMonthlyCurrVal" style="font-size: 1.3rem; font-weight: 800; color: #F472B6;">වැඩසටහන් 54</div>
+                <div id="anMonthlyCurrMom" style="font-size: 0.8rem; color: #6EE7B7;">MoM: +12.5% (සැප්තැම්බර් 48 සිට)</div>
               </div>
             </div>
 
@@ -1016,7 +812,7 @@
             <div class="chart-card glass-panel" style="height: 380px; margin-bottom: 1.8rem;">
               <div class="chart-header">
                 <h3 class="chart-title"><i class="bi bi-bar-chart-line text-blue"></i> මාසික වැඩසටහන් සංඛ්‍යාව සහ වර්ධන වේගය (Monthly Trend & MoM Growth)</h3>
-                <span class="glass-badge gold">2025 නොවැම්බර් - 2026 සැප්තැම්බර්</span>
+                <span class="glass-badge gold dynamic-period-range">2025 නොවැම්බර් – 2026 ඔක්තෝම්බර්</span>
               </div>
               <div class="chart-canvas-wrap">
                 <canvas id="anMonthlyTrendChart"></canvas>
@@ -1030,11 +826,11 @@
                   <i class="bi bi-search"></i> මාසයක් තෝරා විස්තර බලන්න:
                 </label>
                 <select id="anMonthDetailSelect" class="glass-select" style="min-width: 220px;">
-                  <option value="all">සියලු මාස 11 (සමස්ත වගුව)</option>
+                  <option value="all">සියලු මාස 12 (සමස්ත වගුව)</option>
                 </select>
               </div>
               <span style="font-size: 0.8rem; color: #94A3B8;" id="anMonthDetailNotes">
-                සම්පූර්ණ මාස 11 ක සංඛ්‍යාලේඛන පහත දැක්වේ
+                සම්පූර්ණ <span class="dynamic-month-count">මාස 12</span> ක සංඛ්‍යාලේඛන පහත දැක්වේ
               </span>
             </div>
 
@@ -1067,13 +863,13 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.5rem;">
               <div class="glass-panel" style="padding: 1.2rem; border-top: 3px solid #D4AF37;">
                 <div class="glass-badge gold" style="margin-bottom: 0.5rem;"><i class="bi bi-trophy-fill"></i> වැඩිම වැඩසටහන් කළ ප්‍රමුඛ වසම් (Top Performers)</div>
-                <div style="font-size: 0.95rem; color: #FFF; font-weight: 700; line-height: 1.6;">
-                  🥇 155 හියාරේ උතුර (13) • 🥈 113/බී නුගදූව (12) • 🥉 109 /ඊ අඹගහවිල (12) • 155/ඒෆ් කදුරුගස්හේන (12) • 109/ඒච් බදුන්ගොඩ ජනපදය (12) • 133/සී නාගහවත්ත (10)
+                <div id="anTopPerformersText" style="font-size: 0.95rem; color: #FFF; font-weight: 700; line-height: 1.6;">
+                  🥇 155 හියාරේ උතුර (17) • 🥈 155/ඒච් කඳහේන (17) • 🥉 113/බී නුගදූව (16) • 109/බී ඉහළගොඩ දකුණ (16) • 155/ඒෆ් කදුරුගස්හේන (16) • 109/ඒච් බදුන්ගොඩ ජනපදය (15)
                 </div>
                 <div style="font-size: 0.78rem; color: #CBD5E1; margin-top: 0.4rem;">මෙම වසම් ප්‍රජා සංවර්ධන කටයුතු වඩාත් සක්‍රියව මෙහෙයවා ඇත.</div>
               </div>
               <div class="glass-panel" style="padding: 1.2rem; border-top: 3px solid #10B981;">
-                <div class="glass-badge green" style="margin-bottom: 0.5rem;"><i class="bi bi-check-circle-fill"></i> සියලු වසම් 63ම සම්පූර්ණ ආවරණය (100% Complete)</div>
+                <div id="anDivisionsCoverageTitle" class="glass-badge green" style="margin-bottom: 0.5rem;"><i class="bi bi-check-circle-fill"></i> සියලු වසම් 63ම සම්පූර්ණ ආවරණය (100% Complete)</div>
                 <div style="font-size: 0.95rem; color: #FFF; font-weight: 700; line-height: 1.6;">
                   අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ සියලුම ග්‍රාම නිලධාරී වසම් 63 මගින්ම ප්‍රජා සංවර්ධන වැඩසටහන් නිල වශයෙන් වාර්තා කර ඇත.
                 </div>
@@ -1125,7 +921,7 @@
                     <th style="text-align: center;">ක්‍රියාත්මක</th>
                     <th style="text-align: center;">විවිධත්වය (10න්)</th>
                     <th style="text-align: center;">ක්‍රියාකාරී දින</th>
-                    <th>ප්‍රතිලාභීන්</th>
+                    <th>ඡායාරූප ගණන</th>
                     <th>ප්‍රගතිය</th>
                     <th style="text-align: center;">තත්ත්වය</th>
                   </tr>
@@ -1182,7 +978,7 @@
                     <th style="text-align: center;">වැඩසටහන් ගණන</th>
                     <th style="text-align: center;">සමස්ත ප්‍රතිශතය</th>
                     <th>ප්‍රමුඛතාවය</th>
-                    <th>ප්‍රධාන අරමුණ හා ක්‍රියාකාරකම්</th>
+                    <th>විස්තරය</th>
                   </tr>
                 </thead>
                 <tbody id="anSectorTableBody">
@@ -1200,23 +996,23 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
               <div class="glass-panel" style="padding: 1.1rem; border-left: 4px solid #3B82F6;">
                 <div style="font-size: 0.78rem; color: #94A3B8;">සතියේ වැඩ කරන දින (Weekdays)</div>
-                <div style="font-size: 1.4rem; font-weight: 800; color: #60A5FA;">67.6% (වැඩසටහන් 259)</div>
+                <div id="anTimelineWeekdaysVal" style="font-size: 1.4rem; font-weight: 800; color: #60A5FA;">66.2% (වැඩසටහන් 323)</div>
                 <div style="font-size: 0.78rem; color: #CBD5E1;">සඳුදා සිට සිකුරාදා දක්වා</div>
               </div>
               <div class="glass-panel" style="padding: 1.1rem; border-left: 4px solid #F59E0B;">
                 <div style="font-size: 0.78rem; color: #94A3B8;">සති අන්ත දින (Weekends)</div>
-                <div style="font-size: 1.4rem; font-weight: 800; color: #FCD34D;">32.4% (වැඩසටහන් 124)</div>
+                <div id="anTimelineWeekendsVal" style="font-size: 1.4rem; font-weight: 800; color: #FCD34D;">33.8% (වැඩසටහන් 165)</div>
                 <div style="font-size: 0.78rem; color: #CBD5E1;">සෙනසුරාදා සහ ඉරිදා දින</div>
               </div>
               <div class="glass-panel" style="padding: 1.1rem; border-left: 4px solid #10B981;">
                 <div style="font-size: 0.78rem; color: #94A3B8;">වැඩිම වැඩසටහන් පැවති දිනය</div>
-                <div style="font-size: 1.4rem; font-weight: 800; color: #6EE7B7;">සෙනසුරාදා (72)</div>
+                <div id="anTimelineBusiestDay" style="font-size: 1.4rem; font-weight: 800; color: #6EE7B7;">බ්‍රහස්පතින්දා (104)</div>
                 <div style="font-size: 0.78rem; color: #CBD5E1;">ප්‍රජා ශ්‍රමදාන හා සායන වැඩිපුරම</div>
               </div>
               <div class="glass-panel" style="padding: 1.1rem; border-left: 4px solid #06B6D4;">
                 <div style="font-size: 0.78rem; color: #94A3B8;">මුළු ක්‍රියාකාරී දින සංඛ්‍යාව</div>
-                <div style="font-size: 1.4rem; font-weight: 800; color: #67E8F9;">දින 115 ක්</div>
-                <div style="font-size: 0.78rem; color: #CBD5E1;">දිනකට සාමාන්‍යය 2.21 ක්</div>
+                <div id="anTimelineActiveDays" style="font-size: 1.4rem; font-weight: 800; color: #67E8F9;">දින 206 ක්</div>
+                <div id="anTimelineAvgPerDay" style="font-size: 0.78rem; color: #CBD5E1;">දිනකට සාමාන්‍යය 2.37 ක්</div>
               </div>
             </div>
 
@@ -1235,7 +1031,7 @@
               <div class="chart-card glass-panel" style="height: 380px;">
                 <div class="chart-header">
                   <h3 class="chart-title"><i class="bi bi-pie-chart text-blue"></i> වැඩ කරන දින vs සති අන්තය</h3>
-                  <span class="glass-badge gold">67.6% vs 32.4%</span>
+                  <span id="anTimelineSplitBadge" class="glass-badge gold">66.2% vs 33.8%</span>
                 </div>
                 <div class="chart-canvas-wrap">
                   <canvas id="anWeekendChart"></canvas>
@@ -1249,7 +1045,7 @@
                 <h4 style="font-size: 1.05rem; font-weight: 700; color: #FFF; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
                   <i class="bi bi-lightning-charge-fill text-blue"></i> වැඩිම වැඩසටහන් ප්‍රමාණයක් වාර්තා වූ විශේෂ දින (Peak Activity Dates)
                 </h4>
-                <span class="glass-badge gold">දිනකට වැඩසටහන් 5 සිට 9 දක්වා</span>
+                <span id="anPeakDatesRangeBadge" class="glass-badge gold">දිනකට වැඩසටහන් 7 සිට 11 දක්වා</span>
               </div>
               <div class="kpi-grid" id="anPeakDatesGrid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
                 <!-- Populated dynamically -->
@@ -1263,7 +1059,7 @@
                   <h4 style="font-size: 1.05rem; font-weight: 700; color: #FFF; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
                     <i class="bi bi-grid-3x3-gap text-blue"></i> සක්‍රිය දින දර්ශන දසුන (Interactive Activity Calendar Heatmap)
                   </h4>
-                  <div style="font-size: 0.8rem; color: #94A3B8;">වාර්තාකරණ කාලසීමාව තුළ සක්‍රිය වූ දින 115 හි වැඩසටහන් සාන්ද්‍රණය</div>
+                  <div id="anHeatmapSubtext" style="font-size: 0.8rem; color: #94A3B8;">වාර්තාකරණ කාලසීමාව තුළ සක්‍රිය වූ දින 206 හි වැඩසටහන් සාන්ද්‍රණය</div>
                 </div>
                 <!-- Heatmap Legend -->
                 <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; color: #CBD5E1;">
@@ -1292,7 +1088,7 @@
                 විවිධ ක්ෂේත්‍ර 7ක් හෝ ඊට වැඩි ගණනක් ආවරණය කළ ප්‍රමුඛ වසම් (Diversity Champions)
               </h3>
               <p style="font-size: 0.85rem; color: #CBD5E1; margin-bottom: 1.2rem;">
-                තනි ක්ෂේත්‍රයකට සීමා නොවී සෞඛ්‍ය, කෘෂිකාර්මික, යටිතල පහසුකම්, ඩෙංගු මර්දන ඇතුළු බහුවිධ ක්ෂේත්‍ර සාර්ථකව ආවරණය කළ වසම්:
+                තනි ක්ෂේත්‍රයකට සීමා නොවී සෞඛ්‍ය, කෘෂිකාර්මික, යටිතල පහසුකම්, ඩෙංගු මර්ධන ඇතුළු බහුවිධ ක්ෂේත්‍ර සාර්ථකව ආවරණය කළ වසම්:
               </p>
               <div class="kpi-grid" id="anDiversityTopGrid" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem;">
                 <!-- Populated dynamically -->
@@ -1404,16 +1200,16 @@
               <div class="kpi-card glass-panel" style="border-top: 3px solid #10B981;">
                 <div class="kpi-title">සැලසුම් කළ vs සැබෑ ප්‍රගතිය</div>
                 <div class="kpi-value" style="color: #6EE7B7;">100%</div>
-                <div class="kpi-subtext">වැඩසටහන් 403 ම ක්ෂේත්‍ර මට්ටමින් සම්පූර්ණයි</div>
+                <div class="kpi-subtext" id="anDeepdiveCompletedText">වැඩසටහන් 488 ම ක්ෂේත්‍ර මට්ටමින් සම්පූර්ණයි</div>
               </div>
               <div class="kpi-card glass-panel" style="border-top: 3px solid #38BDF8;">
                 <div class="kpi-title">ක්‍රියාකාරී දින එකතුව</div>
-                <div class="kpi-value" style="color: #38BDF8;">179 දින</div>
+                <div class="kpi-value" id="anDeepdiveActiveDays" style="color: #38BDF8;">206 දින</div>
                 <div class="kpi-subtext">ප්‍රජා වැඩසටහන් මෙහෙයවූ මුළු දින</div>
               </div>
               <div class="kpi-card glass-panel" style="border-top: 3px solid #D4AF37;">
                 <div class="kpi-title">සත්‍ය ඡායාරූප සාක්ෂි</div>
-                <div class="kpi-value blue-text-gradient">1,419</div>
+                <div class="kpi-value blue-text-gradient" id="anDeepdivePhotos">1,613</div>
                 <div class="kpi-subtext">Google Drive සත්‍යාපිත ඡායාරූප</div>
               </div>
               <div class="kpi-card glass-panel" style="border-top: 3px solid #A855F7;">
@@ -1427,7 +1223,7 @@
             <div class="chart-card glass-panel" style="height: 380px; margin-bottom: 1.8rem;">
               <div class="chart-header">
                 <h3 class="chart-title"><i class="bi bi-calendar-range text-blue"></i> මාසික වැඩසටහන් සහ ක්‍රියාකාරී දින සංසන්දනය</h3>
-                <span class="glass-badge blue">මාස 11 චක්‍රය</span>
+                <span class="glass-badge blue"><span class="dynamic-month-count">මාස 12</span> චක්‍රය</span>
               </div>
               <div class="chart-canvas-wrap">
                 <canvas id="anDeepdiveFinChart"></canvas>
@@ -1450,7 +1246,7 @@
                 </ul>
               </div>
               <div style="background: rgba(255, 255, 255, 0.04); padding: 0.9rem; border-radius: 8px; border: 1px solid rgba(212, 175, 55, 0.2); font-size: 0.82rem; color: #FDE68A;">
-                <i class="bi bi-check-circle-fill"></i> තහවුරු කළ දිනය: 2026 සැප්තැම්බර් 30 • ප්‍රාදේශීය ලේකම් කාර්යාලය, අක්මීමන.
+                <i class="bi bi-check-circle-fill"></i> <span id="anDeepdiveVerifiedDate">තහවුරු කළ දිනය: 2026 නොවැම්බර් 25</span> • ප්‍රාදේශීය ලේකම් කාර්යාලය, අක්මීමන.
               </div>
             </div>
           </div>
@@ -1518,7 +1314,7 @@
                   <i class="bi bi-calendar-range"></i> වාර්තාකරණ කාලසීමාව (Period)
                 </label>
                 <select id="reportPeriodSelect" class="glass-select" style="width: 100%;">
-                  <option value="all">සම්පූර්ණ වාර්ෂික කාලසීමාව (2024 Annual)</option>
+                  <option value="all">සම්පූර්ණ වාර්ෂික කාලසීමාව (2026 Annual)</option>
                   <option value="h1">පළමු අර්ධ වාර්ෂිකය (H1: ජන - ජූනි)</option>
                   <option value="h2">දෙවන අර්ධ වාර්ෂිකය (H2: ජූලි - දෙසැ)</option>
                   <option value="q1">1 වන කාර්තුව (Q1: ජන - මාර්තු)</option>
@@ -1544,8 +1340,8 @@
                   <i class="bi bi-calendar-check"></i> වර්ෂය (Year)
                 </label>
                 <select id="reportYearSelect" class="glass-select" style="width: 100%;">
-                  <option value="2024" selected>2024 වර්ෂය</option>
-                  <option value="all">සියලු වර්ෂ</option>
+                  <option value="2026">2026 වර්ෂය</option>
+                  <option value="all" selected>සියලු වර්ෂ</option>
                 </select>
               </div>
 
@@ -1585,10 +1381,10 @@
             <div>
               <div style="font-size: 0.8rem; color: #94A3B8;">වත්මන් වාර්තාව (Current Active Report):</div>
               <div style="font-size: 1.05rem; font-weight: 800; color: #FFF;" id="reportBarActiveTitle">
-                1. සමස්ත සංවර්ධන ප්‍රගති වාර්තාව 2024
+                1. සමස්ත සංවර්ධන ප්‍රගති වාර්තාව 2026
               </div>
               <div style="font-size: 0.76rem; color: #FDE68A; margin-top: 3px;">
-                ලේඛන අංකය: <strong id="reportDocRefId">AKM/PSS/REP/2024/01</strong> | ජනනය කළ දිනය: <strong id="reportDocTimestamp">2024-11-16</strong>
+                ලේඛන අංකය: <strong id="reportDocRefId">AKM/PSS/REP/2026/01</strong> | ජනනය කළ දිනය: <strong id="reportDocTimestamp">2026-11-25</strong>
               </div>
             </div>
 
@@ -1717,23 +1513,23 @@
               <div style="font-size: 1.15rem; font-weight: 800; color: #10B981; display: flex; align-items: center; gap: 0.5rem;">
                 <span class="status-indicator-dot"></span> Google Drive සජීවීයි
               </div>
-              <div style="font-size: 0.75rem; color: #CBD5E1; margin-top: 0.4rem;">CDC Progress (පත්‍රිකා 5 + nw.docx)</div>
+              <div style="font-size: 0.75rem; color: #CBD5E1; margin-top: 0.4rem;">CDC Progress (පත්‍රිකා 6 + nw.docx)</div>
             </div>
 
             <div class="glass-panel" style="padding: 1.4rem;">
               <div style="font-size: 0.78rem; color: #94A3B8; margin-bottom: 0.3rem;"><i class="bi bi-journal-check text-blue"></i> අනන්‍ය වැඩසටහන්</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: #FDE68A;" id="statusTotalUniqueActivities">
-                442 වැඩසටහන්
+                488 වැඩසටහන්
               </div>
-              <div style="font-size: 0.75rem; color: #CBD5E1; margin-top: 0.4rem;">ප්‍රතිචාර 221කින් (සටහන් 517ක් | අනුපිටපත් 75ක් ඉවත් කළ පසු)</div>
+              <div style="font-size: 0.75rem; color: #CBD5E1; margin-top: 0.4rem;">ප්‍රතිචාර 244කින් (සටහන් 569ක් | අනුපිටපත් 81ක් ඉවත් කළ පසු)</div>
             </div>
 
             <div class="glass-panel" style="padding: 1.4rem;">
               <div style="font-size: 0.78rem; color: #94A3B8; margin-bottom: 0.3rem;"><i class="bi bi-filter-circle-fill text-blue"></i> අනුපිටපත් ඉවත් කිරීම</div>
               <div style="font-size: 1.15rem; font-weight: 800; color: #38BDF8;" id="statusDuplicatesCount">
-                අනුපිටපත් 75ක් ඉවත් කරන ලදී
+                අනුපිටපත් 81ක් ඉවත් කරන ලදී
               </div>
-              <div style="font-size: 0.75rem; color: #CBD5E1; margin-top: 0.4rem;">ඡායාරූප 1,419 සහ තොරතුරු සම්මිශ්‍රණය කර සුරක්ෂිත කළා</div>
+              <div style="font-size: 0.75rem; color: #CBD5E1; margin-top: 0.4rem;">ඡායාරූප 1,613 සහ තොරතුරු සම්මිශ්‍රණය කර සුරක්ෂිත කළා</div>
             </div>
 
             <div class="glass-panel" style="padding: 1.4rem;">
@@ -1748,10 +1544,10 @@
           <!-- Subtabs for Status Tab -->
           <div class="subtabs-bar" data-section="status">
             <button class="subtab-btn active" data-subtab="audit"><i class="bi bi-shield-check"></i> දත්ත ගුණාත්මකභාවය හා විගණනය</button>
-            <button class="subtab-btn" data-subtab="duplicates"><i class="bi bi-layers-half"></i> අනුපිටපත් විගණන ලේඛනය (77)</button>
+            <button class="subtab-btn" data-subtab="duplicates"><i class="bi bi-layers-half"></i> අනුපිටපත් විගණන ලේඛනය (<span id="statusDupTabCount">81</span>)</button>
             <button class="subtab-btn" data-subtab="anomalies"><i class="bi bi-calendar-event"></i> දින විෂමතා හා සත්‍යාපන වාර්තාව</button>
             <button class="subtab-btn" data-subtab="submissions"><i class="bi bi-building-check"></i> වසම් 63 වාර්තාකරණ තත්ත්වය (100%)</button>
-            <button class="subtab-btn" data-subtab="drive"><i class="bi bi-google"></i> Google Drive මූලාශ්‍ර විස්තර (5)</button>
+            <button class="subtab-btn" data-subtab="drive"><i class="bi bi-google"></i> Google Drive මූලාශ්‍ර විස්තර (6)</button>
           </div>
 
           <!-- Status Subtab 1: Quality & Audit Log -->
@@ -1763,15 +1559,15 @@
               <div style="color: #CBD5E1; font-size: 0.88rem; line-height: 1.7; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem;">
                 <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
                   <div style="font-weight: 700; color: #FDE68A; margin-bottom: 0.5rem;"><i class="bi bi-1-circle"></i> අනුපිටපත් ඉවත් කිරීමේ තහවුරුව</div>
-                  ගූගල් පෝරම (Google Forms) හරහා නිලධාරීන් විසින් එකම වැඩසටහන මාසික පත්‍රිකාවල නැවත ඇතුළත් කර ඇති අවස්ථා ස්වයංක්‍රීය බහු-ස්ථර ඇල්ගොරිතම මගින් හඳුනාගෙන, තහවුරු කළ අනුපිටපත් 75ක් ඉවත් කර 100% අනන්‍ය වැඩසටහන් 442ක් පමණක් ගණනය කර ඇත.
+                  ගූගල් පෝරම (Google Forms) හරහා නිලධාරීන් විසින් එකම වැඩසටහන මාසික පත්‍රිකාවල නැවත ඇතුළත් කර ඇති අවස්ථා ස්වයංක්‍රීය බහු-ස්ථර ඇල්ගොරිතම මගින් හඳුනාගෙන, තහවුරු කළ අනුපිටපත් 81ක් ඉවත් කර (Raw 569 → Unique 488) 100% අනන්‍ය වැඩසටහන් 488ක් ගණනය කර ඇත.
                 </div>
                 <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
                   <div style="font-weight: 700; color: #FDE68A; margin-bottom: 0.5rem;"><i class="bi bi-2-circle"></i> නිල වසම් නාම සම්මතකරණය</div>
-                  අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ නිල ග්‍රාම නිලධාරී වසම් 63 හි නාමාවලියට අනුව, පෝරමවල තිබූ කේත හා අක්ෂර වින්‍යාස විවිධත්වයන් 64ම 100% නිවැරදිව සම්මත වසම් නාම වෙත සිතියම්ගත කර ඇත.
+                  අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ නිල ග්‍රාම නිලධාරී වසම් 63 හි නාමාවලියට අනුව, පෝරමවල තිබූ කේත හා අක්ෂර වින්‍යාස විවිධත්වයන් 63ම 100% නිවැරදිව සම්මත වසම් නාම වෙත සිතියම්ගත කර ඇත.
                 </div>
                 <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
                   <div style="font-weight: 700; color: #FDE68A; margin-bottom: 0.5rem;"><i class="bi bi-3-circle"></i> ඡායාරූප සත්‍යතාව (100% Uncropped)</div>
-                  ප්‍රදර්ශනය වන සියලුම ඡායාරූප 1,419ම Google Drive සත්‍ය මූලාශ්‍රයෙන් සෘජුවම ලබාගෙන ඇති අතර, කිසිදු ආදර්ශ හෝ stock ඡායාරූපයක් පද්ධතිය තුළ අඩංගු නොවේ. සියලු ඡායාරූප කැපීමකින් තොරව (Uncropped) පූර්ණ ප්‍රමාණයෙන් දිස්වේ.
+                  ප්‍රදර්ශනය වන සියලුම ඡායාරූප 1,613ම Google Drive සත්‍ය මූලාශ්‍රයෙන් සෘජුවම ලබාගෙන ඇති අතර, කිසිදු ආදර්ශ හෝ stock ඡායාරූපයක් පද්ධතිය තුළ අඩංගු නොවේ. සියලු ඡායාරූප කැපීමකින් තොරව (Uncropped) පූර්ණ ප්‍රමාණයෙන් දිස්වේ.
                 </div>
               </div>
             </div>
@@ -1909,7 +1705,7 @@
                   <div style="font-size: 0.8rem; color: #D4AF37; font-weight: 700; margin-bottom: 0.4rem;">සමුච්චිත ප්‍රතිචාර පත්‍රිකාව (Main Sheet)</div>
                   <div style="font-size: 1.05rem; font-weight: 700; color: #FFF; margin-bottom: 0.6rem;">ප්‍රජා සංවර්ධන සභා වැඩසටහන්</div>
                   <div style="font-size: 0.8rem; color: #94A3B8; word-break: break-all; margin-bottom: 0.8rem;">
-                    ප්‍රතිචාර: 70 | සටහන්: 233
+                    ප්‍රතිචාර: 70 | සටහන්: 246
                   </div>
                   <a href="https://docs.google.com/spreadsheets/d/1JGjlJxPri48nzVyRgZS1hd8_VMF2t7rU0_KU-xEnYkk" target="_blank" class="btn-glass" style="display: inline-block; font-size: 0.8rem; padding: 0.45rem 1rem; text-decoration: none;">
                     <i class="bi bi-file-earmark-spreadsheet"></i> Sheet විවෘත කරන්න
@@ -1931,7 +1727,7 @@
                   <div style="font-size: 0.8rem; color: #D4AF37; font-weight: 700; margin-bottom: 0.4rem;">ජූලි මාසික ප්‍රතිචාර පත්‍රිකාව</div>
                   <div style="font-size: 1.05rem; font-weight: 700; color: #FFF; margin-bottom: 0.6rem;">July Monthly Responses</div>
                   <div style="font-size: 0.8rem; color: #94A3B8; word-break: break-all; margin-bottom: 0.8rem;">
-                    ප්‍රතිචාර: 42 | සටහන්: 81
+                    ප්‍රතිචාර: 42 | සටහන්: 83
                   </div>
                   <a href="https://docs.google.com/spreadsheets/d/1zZFmJvE_TVQUXU7XtrTPEBhM6jzpd6stlj2Feyt6-Nk" target="_blank" class="btn-glass" style="display: inline-block; font-size: 0.8rem; padding: 0.45rem 1rem; text-decoration: none;">
                     <i class="bi bi-file-earmark-spreadsheet"></i> July Sheet
@@ -1959,6 +1755,17 @@
                     <i class="bi bi-file-earmark-spreadsheet"></i> September Sheet
                   </a>
                 </div>
+
+                <div style="background: rgba(255,255,255,0.02); padding: 1.4rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                  <div style="font-size: 0.8rem; color: #D4AF37; font-weight: 700; margin-bottom: 0.4rem;">ඔක්තෝබර් මාසික පත්‍රිකාව</div>
+                  <div style="font-size: 1.05rem; font-weight: 700; color: #FFF; margin-bottom: 0.6rem;">October Monthly Responses</div>
+                  <div style="font-size: 0.8rem; color: #94A3B8; word-break: break-all; margin-bottom: 0.8rem;">
+                    ප්‍රතිචාර: 23 | සටහන්: 52
+                  </div>
+                  <a href="https://drive.google.com/drive/folders/1jBY0y_QWiinEPXEpEU6OwesPmlIna33C?usp=sharing" target="_blank" class="btn-glass" style="display: inline-block; font-size: 0.8rem; padding: 0.45rem 1rem; text-decoration: none;">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Drive Folder (October)
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -1972,7 +1779,7 @@
           <span style="font-weight: 700; color: #FFF;">ප්‍රජා සංවර්ධන සභා මගින් සිදු කරන ලද වැඩසටහන්</span> • අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසය
         </div>
         <div>
-          <span>© 2024 අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය. සියලු හිමිකම් ඇවිරිණි.</span>
+          <span>© 2026 අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය</span>
         </div>
       </footer>
 
@@ -2108,9 +1915,9 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/data.js?v=11.0"></script>
-  <script src="js/sheets-service.js?v=11.0"></script>
-  <script src="js/charts.js?v=11.0"></script>
-  <script src="js/app.js?v=11.0"></script>
+  <script src="js/data.js?v=20261125v2"></script>
+  <script src="js/sheets-service.js?v=20261125v2"></script>
+  <script src="js/charts.js?v=20261125v2"></script>
+  <script src="js/app.js?v=32"></script>
 </body>
 </html>

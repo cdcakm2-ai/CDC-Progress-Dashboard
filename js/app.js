@@ -76,6 +76,7 @@ class PssApp {
     this.data = await window.pssSheetsService.getDashboardData();
     this.data.monthlyStats = this.data.monthlyStats || this.data.monthlyProgress || this.data.monthlySummary || [];
 
+    const siMonthsInit = { "01": "ජනවාරි", "02": "පෙබරවාරි", "03": "මාර්තු", "04": "අප්‍රේල්", "05": "මැයි", "06": "ජූනි", "07": "ජූලි", "08": "අගෝස්තු", "09": "සැප්තැම්බර්", "10": "ඔක්තෝම්බර්", "11": "නොවැම්බර්", "12": "දෙසැම්බර්" };
     // Defensive normalization of canonical activities for seamless rendering
     if (Array.isArray(this.data.activities)) {
       this.data.activities.forEach((act, i) => {
@@ -84,8 +85,20 @@ class PssApp {
         if (!act.gnNameSi) act.gnNameSi = act.gnDivision || "";
         if (!act.sabhaNameSi) act.sabhaNameSi = `${act.gnNameSi} ප්‍රජා සංවර්ධන සභාව`;
         if (!act.statusLabelSi) act.statusLabelSi = act.status || "සම්පූර්ණයි";
+        if (act.progress === undefined || act.progress === null) act.progress = 100;
         if (!act.categoryNameSi) act.categoryNameSi = act.categoryName || "ප්‍රජා සංවර්ධන";
         if (!act.categoryName) act.categoryName = act.categoryNameSi;
+        if (!act.locationSi) act.locationSi = act.gnNameSi ? `${act.gnNameSi} වසම` : "අක්මීමන";
+        if (!act.purposeSi) act.purposeSi = act.description || act.titleSi;
+        if (!act.actionsSi) act.actionsSi = act.description || act.titleSi;
+        if (!act.resultsSi) act.resultsSi = `${act.categoryNameSi} අංශය යටතේ වැඩසටහන සාර්ථකව අවසන් කරන ලදී.`;
+        const ds = String(act.date || act.activityDate || "").slice(0, 10);
+        if (/^\d{4}-\d{2}/.test(ds)) {
+          if (!act.year) act.year = ds.slice(0, 4);
+          if (!act.month) act.month = ds.slice(0, 7);
+          if (!act.yearMonth) act.yearMonth = ds.slice(0, 7);
+          if (!act.monthSi) act.monthSi = `${ds.slice(0, 4)} ${siMonthsInit[ds.slice(5, 7)] || ds.slice(5, 7)}`;
+        }
         
         // Ensure photos array
         if (!Array.isArray(act.photos)) act.photos = [];
@@ -117,11 +130,14 @@ class PssApp {
     }
     this.filteredActivities = [...this.data.activities];
 
-    // Ensure all 63 GN divisions have totalProjects and totalPhotos populated
+    // Ensure all 63 GN divisions have complete computed fields
     if (Array.isArray(this.data.gnDivisions)) {
       this.data.gnDivisions.forEach(g => {
         if (g.totalProjects === undefined) g.totalProjects = g.activityCount || g.completedCount || 0;
         if (g.totalPhotos === undefined) g.totalPhotos = g.photoCount || 0;
+        if (g.completed === undefined) g.completed = g.completedCount ?? g.totalProjects;
+        if (g.ongoing === undefined) g.ongoing = g.ongoingCount ?? 0;
+        if (g.progress === undefined) g.progress = g.progressPercentage ?? (g.totalProjects > 0 ? 100 : 0);
         if (!g.sabhaNameSi) g.sabhaNameSi = `${g.nameSi} ප්‍රජා සංවර්ධන සභාව`;
         if (!g.keySectorSi) g.keySectorSi = "ප්‍රජා සංවර්ධන";
       });
@@ -1166,7 +1182,327 @@ class PssApp {
     setInterval(updateTime, 1000);
   }
 
-  getUniqueActiveDays(activities = []) { if (!Array.isArray(activities) || !activities.length) return 0; return new Set(activities.map(a => (a?.date || a?.activityDate || "").toString().trim()).filter(d => d && d !== "-" && d !== "N/A" && d !== "null" && d !== "undefined")).size; } getFixedCategories() { return [{ id: "religious", nameSi: "\u0D86\u0D9C\u0DB8\u0DD2\u0D9A \u0DC4\u0DCF \u0DC3\u0D82\u0DC3\u0DCA\u0D9A\u0DD8\u0DAD\u0DD2\u0D9A", icon: "bi-flower1" }, { id: "dengue", nameSi: "\u0DA9\u0DD9\u0D82\u0D9C\u0DD4 \u0DB8\u0DBB\u0DCA\u0DB0\u0DB1", icon: "bi-bug" }, { id: "environment", nameSi: "\u0DB4\u0DBB\u0DD2\u0DC3\u0DBB \u0DC4\u0DCF \u0DC1\u0DCA\u200D\u0DBB\u0DB8\u0DAF\u0DCF\u0DB1", icon: "bi-tree" }, { id: "health", nameSi: "\u0DC3\u0DDE\u0D9B\u0DCA\u200D\u0DBA \u0DC3\u0DCF\u0DBA\u0DB1", icon: "bi-heart-pulse" }, { id: "education", nameSi: "\u0D85\u0DB0\u0DCA\u200D\u0DBA\u0DCF\u0DB4\u0DB1/\u0DC5\u0DB8\u0DCF/\u0D9A\u0DCA\u200D\u0DBB\u0DD3\u0DA9\u0DCF", icon: "bi-book" }, { id: "agriculture", nameSi: "\u0D9A\u0DD8\u0DC2\u0DD2\u0D9A\u0DCF\u0DBB\u0DCA\u0DB8\u0DD2\u0D9A/\u0D9C\u0DD9\u0DC0\u0DAD\u0DD4", icon: "bi-flower2" }, { id: "livelihood", nameSi: "\u0DC3\u0DCA\u0DC0\u0DBA\u0D82 \u0DBB\u0DD0\u0D9A\u0DD2\u0DBA\u0DCF/\u0DA2\u0DD3\u0DC0\u0DB1\u0DDD\u0DB4\u0DCF\u0DBA", icon: "bi-briefcase" }, { id: "infrastructure", nameSi: "\u0DBA\u0DA7\u0DD2\u0DAD\u0DBD \u0DB4\u0DC4\u0DC3\u0DD4\u0D9A\u0DB8\u0DCA", icon: "bi-building" }, { id: "welfare", nameSi: "\u0DC3\u0DB8\u0DCF\u0DA2 \u0DC3\u0DD4\u0DB7\u0DC3\u0DCF\u0DB0\u0DB1", icon: "bi-people" }, { id: "awareness", nameSi: "\u0DB4\u0DCA\u200D\u0DBB\u0DA2\u0DCF \u0DAF\u0DD0\u0DB1\u0DD4\u0DC0\u0DAD\u0DCA \u0D9A\u0DD2\u0DBB\u0DD3\u0DB8\u0DCA", icon: "bi-megaphone" }]; } classifyActivityCategory(act) { const a = act || {}; const cats = this.getFixedCategories(); const txt = [a.titleSi, a.title, a.descriptionSi, a.description, a.actionsSi, a.purposeSi, a.resultsSi, a.categoryNameSi, a.categorySi, a.sectorSi, a.sector, a.category].filter(Boolean).join(" ").toLowerCase(); const has = (ks) => ks.some(k => txt.includes(k)); if (has(["\u0DAF\u0DB1\u0DCA\u0DC3\u0DD0\u0DBD\u0DCA", "\u0DAF\u0DB1\u0DCA\u0DC3\u0DBD", "\u0DB7\u0D9A\u0DCA\u0DAD\u0DD2 \u0D9C\u0DD3\u0DAD", "\u0DB4\u0DDC\u0DC3\u0DDC\u0DB1\u0DCA", "\u0DC0\u0DD9\u0DC3\u0D9A\u0DCA", "\u0D87\u0DC3\u0DC5", "\u0DB4\u0DDD\u0DBA", "\u0DB6\u0DDD\u0DB0\u0DD2\u0DB4\u0DD6\u0DA2\u0DCF", "\u0DB4\u0DD2\u0DB1\u0DCA\u0D9A\u0DB8\u0DCA", "\u0DB0\u0DBB\u0DCA\u0DB8", "\u0DC0\u0DD2\u0DC4\u0DCF\u0DBB", "\u0DB4\u0DB1\u0DCA\u0DC3\u0DBD\u0DCA", "\u0DAF\u0DC4\u0DB8\u0DCA\u0DB4\u0DCF\u0DC3\u0DBD", "\u0DC3\u0DCF\u0DC4\u0DD2\u0DAD\u0DCA\u200D\u0DBA", "\u0D85\u0DC0\u0DD4\u0DBB\u0DD4\u0DAF\u0DD4 \u0D8B\u0DAD\u0DCA\u0DC3\u0DC0", "\u0DC3\u0DBB\u0DCA\u0DC0 \u0D86\u0D9C\u0DB8\u0DD2\u0D9A", "\u0D86\u0DC1\u0DD3\u0DBB\u0DCA\u0DC0\u0DCF\u0DAF", "\u0DC3\u0DD3\u0DBD", "\u0DB6\u0D9A\u0DCA\u0DAD\u0DD2 \u0D9C\u0DD3\u0DAD", "\u0DB6\u0D9A\u0DCA\u0DB8\u0DC4", "\u0D9A\u0DBD\u0DCF"])) return { id: cats[0].id, nameSi: cats[0].nameSi }; if (has(["\u0DA9\u0DD9\u0D82\u0D9C\u0DD4", "\u0DA9\u0DD9\u0DB1\u0DCA\u0D9C\u0DD4", "\u0DB8\u0DAF\u0DD4\u0DBB\u0DD4", "\u0DB0\u0DD6\u0DB8\u0DCF\u0DBA\u0DB1"])) return { id: cats[1].id, nameSi: cats[1].nameSi }; const m2 = (has(["\u0DC1\u0DCA\u200D\u0DBB\u0DB8\u0DAF\u0DCF\u0DB1", "\u0DC1\u0DCA\u200D\u0DBB\u0DB8 \u0DAF\u0DCF\u0DB1", "\u0DB4\u0DD2\u0DBB\u0DD2\u0DC3\u0DD2\u0DAF\u0DD4", "\u0D9A\u0DC3\u0DC5", "\u0D9A\u0DC3\u0DBD", "\u0DBB\u0DD4\u0D9A\u0DCA \u0DBB\u0DDD\u0DB4\u0DAB", "\u0DB4\u0DD0\u0DC5 \u0DC3\u0DD2\u0DA7\u0DD4\u0DC0\u0DD3\u0DB8", "\u0DB4\u0DBB\u0DD2\u0DC3\u0DBB", "\u0DC0\u0DCF\u0DBA\u0DD4 \u0DAF\u0DD6\u0DC2\u0DAB\u0DBA"])) ; const m3 = !has(["දැනුවත්"]) && (has(["\u0DC0\u0DDB\u0DAF\u0DCA\u200D\u0DBA", "\u0DC3\u0DCF\u0DBA\u0DB1", "\u0D86\u0DBA\u0DD4\u0DBB\u0DCA\u0DC0\u0DDA\u0DAF", "\u0DBA\u0DDD\u0D9C", "\u0D87\u0DBB\u0DB6\u0DD2\u0D9A\u0DCA", "\u0DC0\u0DCA\u200D\u0DBA\u0DCF\u0DBA\u0DCF\u0DB8", "\u0D87\u0DC3\u0DCA \u0D9A\u0DB1\u0DCA\u0DB1\u0DCF\u0DA9\u0DD2", "\u0DB6\u0DDD \u0DB1\u0DDC\u0DC0\u0DB1 \u0DBB\u0DDD\u0D9C", "\u0DC3\u0DD4\u0DC0\u0DC3\u0DD9\u0DAD", "\u0DC3\u0DDE\u0D9B\u0DCA\u200D\u0DBA", "\u0DAF\u0DB1\u0DCA\u0DAD", "\u0DBB\u0DD4\u0DB0\u0DD2\u0DBB"])) ; const m4 = (has(["\u0DB4\u0DCF\u0DC3\u0DBD\u0DCA", "\u0DB4\u0DCF\u0DC3\u0DBD", "\u0DB4\u0DD9\u0DBB\u0DB4\u0DCF\u0DC3\u0DBD\u0DCA", "\u0DC5\u0DB8\u0DCF", "\u0DBD\u0DB8\u0DCF", "\u0DAF\u0DBB\u0DD4\u0DC0\u0DB1\u0DCA", "\u0DC1\u0DD2\u0DC2\u0DCA\u200D\u0DBA\u0DAD\u0DCA\u0DC0", "\u0DAF\u0DD9\u0DB8\u0DC5 \u0DB7\u0DCF\u0DC2\u0DCF", "\u0DC3\u0DB8\u0DCA\u0DB8\u0DB1\u0DCA\u0DAD\u0DCA\u200D\u0DBB\u0DAB", "\u0DB4\u0DD4\u0DC3\u0DCA\u0DAD\u0D9A\u0DCF\u0DBD", "\u0D85\u0DB0\u0DCA\u200D\u0DBA\u0DCF\u0DB4\u0DB1", "\u0D9A\u0DCA\u200D\u0DBB\u0DD3\u0DA9\u0DCF", "\u0DC0\u0DDC\u0DBD\u0DD2\u0DB6\u0DDD\u0DBD\u0DCA", "\u0D9A\u0DCA\u200D\u0DBB\u0DD2\u0D9A\u0DA7\u0DCA", "\u0DAD\u0DBB\u0D9C\u0DCF\u0DC0\u0DBD\u0DD2"])) ; const m5 = (has(["\u0D9C\u0DD9\u0DC0\u0DAD\u0DD4", "\u0D9A\u0DD8\u0DC2\u0DD2", "\u0DC0\u0D9C\u0DCF", "\u0D9C\u0DDC\u0DC0\u0DD2", "\u0DB4\u0DDC\u0DBD\u0DCA", "\u0DAD\u0DDA", "\u0DB6\u0DD4\u0DBD\u0DAD\u0DCA", "\u0D9C\u0DB8\u0DCA\u0DB8\u0DD2\u0DBB\u0DD2\u0DC3\u0DCA", "\u0D9A\u0DD4\u0DBB\u0DD4\u0DB3\u0DD4", "\u0D9A\u0DBB\u0DCF\u0DB6\u0DD4", "\u0DB6\u0DD2\u0DB8\u0DCA\u0DB8\u0DBD\u0DCA", "\u0DB8\u0DD3 \u0DB8\u0DD0\u0DC3\u0DD2", "\u0DB4\u0DD0\u0DBD \u0DB6\u0DD9\u0DAF\u0DCF", "\u0D9A\u0DA7\u0DBB\u0DDC\u0DC5\u0DD4"])) || has(["පැල බෙදා", "අපනයන පොකුරු"]); const m6 = (has(["\u0DC3\u0DCA\u0DC0\u0DBA\u0D82 \u0DBB\u0DD0\u0D9A\u0DD2\u0DBA\u0DCF", "\u0DB4\u0DD4\u0DC4\u0DD4\u0DAB\u0DD4", "\u0D89\u0DA7\u0DD2\u0DB4\u0DB1\u0DCA\u0DAF\u0DB8\u0DCA", "\u0D89\u0DAF\u0DBD\u0DCA", "\u0DC3\u0DB6\u0DB1\u0DCA", "\u0DB8\u0DC4\u0DB1 \u0DB8\u0DD0\u0DC2\u0DD2\u0DB1\u0DCA", "\u0DB8\u0DD0\u0DC3\u0DCA\u0DB8\u0D9A\u0DD2\u0DB1\u0DCA", "\u0DB8\u0DD0\u0DC4\u0DD4\u0DB8\u0DCA", "\u0DB6\u0DD1\u0D9C\u0DCA", "\u0D86\u0DC3\u0DCA\u0DB8\u0DD2", "\u0DB6\u0DBA\u0DD2\u0DA7\u0DCA", "\u0D85\u0DBD\u0DD9\u0DC0\u0DD2\u0DB4\u0DDC\u0DC5", "\u0DB4\u0DDC\u0DBD", "\u0DC0\u0DCA\u200D\u0DBA\u0DCF\u0DB4\u0DCF\u0DBB", "\u0D9A\u0DBB\u0DCA\u0DB8\u0DCF\u0DB1\u0DCA\u0DAD", "\u0DBB\u0DD6\u0DB4\u0DBD\u0DCF\u0DC0\u0DAB\u0DCA\u200D\u0DBA", "\u0D9A\u0DDC\u0DAB\u0DCA\u0DA9\u0DCF", "\u0D9C\u0DD8\u0DC4 \u0D86\u0DBB\u0DCA\u0DAE\u0DD2\u0D9A", "eco dry", "\u0DA2\u0DD3\u0DC0\u0DB1\u0DDD\u0DB4\u0DCF\u0DBA"])) ; const m7 = !has(["පිරිසිදු"]) && (has(["\u0D9A\u0DCF\u0DB4\u0DA7\u0DCA", "\u0D9A\u0DDC\u0DB1\u0DCA\u0D9A\u0DCA\u200D\u0DBB\u0DD3\u0DA7\u0DCA", "\u0D9A\u0DDC\u0DB1\u0DCA\u0D9A\u0DCA\u200D\u0DBB\u0DD2\u0DA7\u0DCA", "\u0D9C\u0DBD\u0DCA\u0DB6\u0DD0\u0DB8\u0DCA\u0DB8", "\u0DB4\u0DCF\u0DBD\u0DB8", "\u0DB6\u0DDD\u0D9A\u0DCA\u0D9A\u0DD4", "\u0DB4\u0DC5\u0DBD\u0DCA \u0D9A\u0DD2\u0DBB\u0DD3\u0DB8", "\u0DB8\u0DCF\u0DBB\u0DCA\u0D9C \u0DC3\u0D82\u0DC0\u0DBB\u0DCA\u0DB0\u0DB1", "\u0D89\u0DAF\u0DD2\u0D9A\u0DD2\u0DBB\u0DD3\u0DB8", "\u0DB4\u0DD2\u0DC5\u0DD2\u0DC3\u0D9A\u0DBB", "\u0DB8\u0DD4\u0DBD\u0DCA\u0D9C\u0DBD", "\u0DB1\u0DD2\u0DC0\u0DCF\u0DC3 \u0DC3\u0DD1\u0DAF\u0DD3\u0DB8", "\u0DB1\u0DD2\u0DC0\u0DC3\u0D9A\u0DCA \u0DC3\u0DCF\u0DAF\u0DCF", "\u0DA2\u0DBD \u0DC3\u0DD0\u0DB4\u0DBA\u0DD4\u0DB8", "\u0DA2\u0DBD \u0D85\u0DC0\u0DC1\u0DCA\u200D\u0DBA\u0DAD\u0DCF", "\u0DC0\u0DD2\u0DAF\u0DD4\u0DBD\u0DD2", "\u0D9A\u0DCF\u0DAB\u0DD4 \u0DB4\u0DAF\u0DCA\u0DB0\u0DAD\u0DD2"]) || has(["පිළිසකර", "පිලිසකර", "මාර්ග සංවර්ධන", "මර්ගය සන්වර්දනය", "ඇල මාර්ගය", "කාණු පද්ධති", "නිවාස සෑදීම", "නිවසක් සාදා"])); const m8 = (has(["\u0DC3\u0DD4\u0DC5\u0DD2 \u0D9A\u0DD4\u0DAB\u0DCF\u0DA7\u0DD4", "\u0D86\u0DB0\u0DCF\u0DBB", "\u0D85\u0DC0\u0DAD\u0DD0\u0DB1\u0DCA", "\u0DC0\u0DD0\u0DA9\u0DD2\u0DC4\u0DD2\u0DA7\u0DD2", "\u0DC3\u0DD4\u0DB7\u0DC3\u0DCF\u0DB0\u0DB1", "\u0DB4\u0DBB\u0DD2\u0DAD\u0DCA\u200D\u0DBA\u0DCF\u0D9C", "\u0DB4\u0DCA\u200D\u0DBB\u0DAF\u0DCF\u0DB1\u0DBA", "\u0D86\u0DB6\u0DCF\u0DB0\u0DD2\u0DAD", "\u0DC0\u0DD2\u0DBA\u0DC5\u0DD2 \u0D86\u0DC4\u0DCF\u0DBB", "\u0D85\u0DB0\u0DD2 \u0D85\u0DC0\u0DAF\u0DCF\u0DB1\u0DB8\u0DCA", "\u0DC3\u0DB8\u0DD8\u0DAF\u0DCA\u0DB0\u0DD2", "\u0DAF\u0DD2\u0DC0\u0DCF \u0D86\u0DC4\u0DCF\u0DBB"])) ; const m9 = has(["දැනුවත් කිරීම", "මත්ද්‍රව්‍ය", "අපචාර", "ආරක්ෂාව", "උපදේශන", "වායු දූෂණය", "බෝ නොවන රෝග", "ගෘහ ආර්ථික"]); if (m5) return { id: cats[5].id, nameSi: cats[5].nameSi }; if (m7) return { id: cats[7].id, nameSi: cats[7].nameSi }; if (m3) return { id: cats[3].id, nameSi: cats[3].nameSi }; if (m6) return { id: cats[6].id, nameSi: cats[6].nameSi }; if (m4) return { id: cats[4].id, nameSi: cats[4].nameSi }; if (m9) return { id: cats[9].id, nameSi: cats[9].nameSi }; if (m2) return { id: cats[2].id, nameSi: cats[2].nameSi }; if (m8) return { id: cats[8].id, nameSi: cats[8].nameSi }; return { id: cats[9].id, nameSi: cats[9].nameSi }; } syncComputedMetrics() { let acts = this.data.activities || []; const explicitSwaps = { "2026-12-10": "2026-10-12", "2026-11-10": "2026-10-11", "2026-11-08": "2026-08-11" }; acts.forEach(a => { let raw = (a.date || a.activityDate || "").toString().trim().slice(0, 10); if (explicitSwaps[raw]) raw = explicitSwaps[raw]; const gnStr = (a.gnNameSi || a.gnDivision || a.gnName || "").toString(); const txtStr = (a.titleSi || a.title || a.descriptionSi || a.description || "").toString(); if (raw === "2026-02-05" && (gnStr.includes("නිවිතිපිටිගොඩ") || txtStr.includes("පන්සල කන්ද") || txtStr.includes("කාණු පද්ධති"))) { raw = "2026-10-05"; } if (raw === "2026-04-09" && (gnStr.includes("වැලිකැටිය") || txtStr.includes("ගම්මිරිස් පැල"))) { raw = "2026-09-04"; } if (raw === "2026-01-10" && (gnStr.includes("පැදින්නෝරුව") || txtStr.includes("ලෝක ළමා දිනය"))) { raw = "2026-09-29"; } const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (m) { let y = parseInt(m[1], 10), mo = parseInt(m[2], 10), d = parseInt(m[3], 10); if (y > 2026 || y < 2025) y = 2026; const ymStr = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`; if (ymStr < "2025-11-01") y = 2026; const tsRaw = (a.timestamp || a.submittedAt || a.createdAt || "").toString().trim().slice(0, 10); const tsM = tsRaw.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (tsM) { const ty = parseInt(tsM[1], 10), tm = parseInt(tsM[2], 10); if (y > ty) y = ty <= 2026 ? ty : 2026; if (y === ty && mo > tm) { if (d >= 1 && d <= tm && d <= 12 && mo <= 31) { const tmp = mo; mo = d; d = tmp; } else { mo = tm; if (d > 28) d = 28; } } } const fixed = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`; a.date = fixed; a.activityDate = fixed; a.year = String(y); a.month = fixed.slice(0, 7); a.yearMonth = fixed.slice(0, 7); } const dateFixes = [["පින්නදූව", "ජනපදය", { "2026-07-07": "2026-06-07", "2026-07-24": "2026-06-24", "2026-09-25": "2026-08-25" }], ["නාගහවත්ත", "", { "2026-07-13": "2026-06-13", "2026-07-21": "2026-06-21" }], ["අඹගහවිල", "", { "2026-07-18": "2026-06-18", "2026-07-23": "2026-06-23" }], ["මානවිල", "", { "2026-07-29": "2026-06-29" }], ["පිලාන", "", { "2026-07-29": "2026-06-29" }]]; for (const [inc, exc, map] of dateFixes) { if (gnStr.includes(inc) && (!exc || !gnStr.includes(exc)) && map[a.date]) { a.date = map[a.date]; a.activityDate = a.date; a.month = a.date.slice(0, 7); a.yearMonth = a.date.slice(0, 7); break; } } const cls = this.classifyActivityCategory(a); if (cls) { a.category = cls.id; a.categoryNameSi = cls.nameSi; a.categorySi = cls.nameSi; a.sector = cls.nameSi; a.sectorSi = cls.nameSi; a.analyticalCategory = cls.nameSi; } }); if (Array.isArray(this.data.activities)) { const rules = [{ k: "109c", fn: (g, t, d) => g.includes("ඇටඹගස්මුල්ල") && (d === "2026-04-12" || d === "2026-04-13") && /cricket|ක්‍රිකට්/i.test(t) }, { k: "109b", fn: (g, t, d) => g.includes("ඇටඹගස්මුල්ල") && (d === "2026-04-26" || d === "2026-04-27") && /බක්මහ|bakmaha/i.test(t) }, { k: "113d", fn: (g, t, d) => g.includes("බටදූව බටහිර") && d === "2026-07-17" && (t.includes("සුසාන") || t.includes("ඩෙංගු")) }, { k: "152r", fn: (g, t, d) => g.includes("තලහිටියාව") && d === "2026-08-13" && t.includes("දැනුවත්") }, { k: "109a", fn: (g, t, d) => g.includes("අඹගහවිල") && d === "2026-06-23" }, { k: "110p", fn: (g, t, d) => g.includes("පින්නදූව") && !g.includes("ජනපදය") && d === "2026-06-24" }, { k: "112m", fn: (g, t, d) => g.includes("මානවිල") && d === "2026-06-29" }, { k: "133n", fn: (g, t, d) => g.includes("නාගහවත්ත") && d === "2026-06-30" } ]; const kept = {}, deduped = []; this.data.activities.forEach(a => { const g = (a.gnNameSi || a.gnDivision || a.gnName || "").toString(), t = (a.titleSi || a.title || a.descriptionSi || a.description || "").toString(), d = (a.date || a.activityDate || "").toString().trim().slice(0, 10); const r = rules.find(x => x.fn(g, t, d)); if (!r) { deduped.push(a); return; } if (!kept[r.k]) { if (r.keepDate) { a.date = r.keepDate; a.activityDate = r.keepDate; a.month = r.keepDate.slice(0, 7); a.yearMonth = r.keepDate.slice(0, 7); } kept[r.k] = a; deduped.push(a); return; } const seen = new Set(); kept[r.k].photos = [...(Array.isArray(kept[r.k].photos) ? kept[r.k].photos : []), ...(Array.isArray(a.photos) ? a.photos : [])].filter(p => { const pk = typeof p === "string" ? p : JSON.stringify(p); if (seen.has(pk)) return false; seen.add(pk); return true; }); const seenT = new Set(); kept[r.k].photoThumbnails = [...(Array.isArray(kept[r.k].photoThumbnails) ? kept[r.k].photoThumbnails : []), ...(Array.isArray(a.photoThumbnails) ? a.photoThumbnails : [])].filter(p => { const pk = typeof p === "string" ? p : JSON.stringify(p); if (seenT.has(pk)) return false; seenT.add(pk); return true; }); kept[r.k].photoCount = kept[r.k].photos.length; }); this.data.activities = deduped; acts = deduped; } const monthMap = {}; acts.forEach(a => { const ym = (a.yearMonth || a.month || (a.date || "").slice(0, 7)).trim(); if (!/^\d{4}-\d{2}$/.test(ym) || ym < "2025-11") return; if (!monthMap[ym]) monthMap[ym] = []; monthMap[ym].push(a); }); const siMonths = { "01": "ජනවාරි", "02": "පෙබරවාරි", "03": "මාර්තු", "04": "අප්‍රේල්", "05": "මැයි", "06": "ජූනි", "07": "ජූලි", "08": "අගෝස්තු", "09": "සැප්තැම්බර්", "10": "ඔක්තෝම්බර්", "11": "නොවැම්බර්", "12": "දෙසැම්බර්" }; let runningCumulative = 0; const computedMonths = Object.keys(monthMap).sort().map(ym => { const mActs = monthMap[ym]; const [yStr, mStr] = ym.split("-"); const sinhalaMonth = siMonths[mStr] || mStr; const fullSi = `${yStr} ${sinhalaMonth}`; const photos = mActs.reduce((acc, a) => acc + (Array.isArray(a.photoObjects) ? a.photoObjects.length : (Array.isArray(a.photos) ? a.photos.length : (Array.isArray(a.images) ? a.images.length : (Array.isArray(a.photoUrls) ? a.photoUrls.length : 0)))), 0); const gns = new Set(mActs.map(a => a.gnNameSi || a.gnDivision || a.gnName).filter(Boolean)).size; const activeDays = this.getUniqueActiveDays(mActs); const count = mActs.length; runningCumulative += count; return { month: ym, yearMonth: ym, monthKey: ym, monthName: fullSi, monthSi: fullSi, nameSi: fullSi, label: fullSi, sinhalaMonth: sinhalaMonth, count: count, totalActivities: count, totalProjects: count, activities: count, activeDays: activeDays, photos: photos, divisions: gns, divisionsCount: gns, gnCount: gns, reportedDivisions: gns, reportingGns: gns, cumulative: runningCumulative, cumulativeCount: runningCumulative, cumulativeTotal: runningCumulative }; }); computedMonths.forEach((m, idx) => { if (idx === 0) { m.mom = null; m.momChange = null; m.momChangePct = null; } else { const prev = computedMonths[idx - 1].count || 0; const diff = (m.count || 0) - prev; const pct = prev > 0 ? Math.round((diff / prev) * 1000) / 10 : (m.count > 0 ? 100 : 0); m.mom = pct; m.momChange = diff; m.momChangePct = pct; } }); if (computedMonths.length > 0) { this.data.monthlyStats = computedMonths; this.data.monthlyProgress = computedMonths; } const uniqueDays = this.getUniqueActiveDays(acts); const totalPhotos = this.data.photoGallery?.length || acts.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0); if (!this.data.overview) this.data.overview = {}; this.data.overview.totalActivities = acts.length; this.data.overview.activeDays = uniqueDays; this.data.overview.totalActiveDays = uniqueDays; this.data.overview.totalPhotographs = totalPhotos; if (Array.isArray(this.data.gnDivisions)) { this.data.gnDivisions.forEach(g => { const gActs = acts.filter(a => (g.nameSi && a.gnNameSi === g.nameSi) || (g.name && (a.gnDivision === g.name || a.gnName === g.name))); g.totalProjects = gActs.length; g.activityCount = gActs.length; g.activeDays = this.getUniqueActiveDays(gActs); g.photos = gActs.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0); }); this.data.overview.reportingGns = this.data.gnDivisions.filter(g => (g.totalProjects || g.activityCount || 0) > 0).length; } const totalActs = acts.length || 1; const catColors = ["#f59e0b", "#ef4444", "#10b981", "#ec4899", "#3b82f6", "#84cc16", "#8b5cf6", "#6366f1", "#14b8a6", "#f97316"]; const fixedCats = this.getFixedCategories().map((c, idx) => { const cnt = acts.filter(a => a.category === c.id || a.categoryNameSi === c.nameSi).length; const pct = acts.length ? Math.round((cnt / totalActs) * 1000) / 10 : 0; return { id: c.id, nameSi: c.nameSi, name: c.nameSi, label: c.nameSi, icon: c.icon, color: c.color || catColors[idx], desc: c.desc || c.description || c.nameSi || "", description: c.description || c.desc || c.nameSi || "", count: cnt, total: cnt, pct: pct, percentage: pct, share: pct }; }); this.data.categories = fixedCats.map(c => ({ ...c })); this.data.analyticalCategories = fixedCats.map(c => ({ ...c })); if (false) { const acts = this.data.activities || []; const uniqueDays = this.getUniqueActiveDays(acts); const totalPhotos = this.data.photoGallery?.length || acts.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0); if (!this.data.overview) this.data.overview = {}; this.data.overview.totalActivities = acts.length; this.data.overview.activeDays = uniqueDays; this.data.overview.totalActiveDays = uniqueDays; this.data.overview.totalPhotographs = totalPhotos; if (Array.isArray(this.data.gnDivisions)) { this.data.gnDivisions.forEach(g => { const gActs = acts.filter(a => (g.nameSi && a.gnNameSi === g.nameSi) || (g.name && (a.gnDivision === g.name || a.gnName === g.name))); if (gActs.length > 0 || !g.activeDays) g.activeDays = this.getUniqueActiveDays(gActs); }); this.data.overview.reportingGns = this.data.gnDivisions.filter(g => (g.totalProjects || g.activityCount || 0) > 0).length; } const mList = this.data.monthlyStats || this.data.monthlyProgress || []; mList.forEach(m => { if (!m.activeDays && m.month) { const mActs = acts.filter(a => (a.month || "").includes(m.month) || (a.date || "").startsWith(m.month)); if (mActs.length > 0) m.activeDays = this.getUniqueActiveDays(mActs); } }); } this.data.monthlySummary = this.data.monthlyStats; if (this.data.summary) { this.data.summary.totalActivities = acts.length; this.data.summary.completedActivities = acts.length; this.data.summary.activeDays = uniqueDays; } if (this.data.overview) { this.data.overview.totalActivities = acts.length; this.data.overview.completedActivities = acts.length; this.data.overview.activeDays = uniqueDays; } this.data.analytics = this.data.analytics || {}; const _dateGroups = {}; acts.forEach(a => { const d = (a.date || a.activityDate || "").toString().trim().slice(0, 10); if (/^\d{4}-\d{2}-\d{2}$/.test(d)) { if (!_dateGroups[d]) _dateGroups[d] = []; _dateGroups[d].push(a); } }); const _siDays = ["ඉරිදා", "සඳුදා", "අඟහරුවාදා", "බදාදා", "බ්‍රහස්පතින්දා", "සිකුරාදා", "සෙනසුරාදා"]; this.data.analytics.heatmap = Object.keys(_dateGroups).sort().map(d => ({ date: d, count: _dateGroups[d].length })); this.data.analytics.peakDates = Object.keys(_dateGroups).sort((a, b) => _dateGroups[b].length - _dateGroups[a].length).slice(0, 10).map(d => ({ date: d, count: _dateGroups[d].length, daySi: _siDays[new Date(d + "T00:00:00").getDay()] || "", keyActivities: _dateGroups[d].slice(0, 3).map(x => x.titleSi || x.title || "").filter(Boolean).join(", ") })); this.filteredActivities = [...(this.data.activities || [])]; } renderKPIs() { const _mStats = this.data.monthlyStats || []; const _mCount = _mStats.length; const _pRange = _mCount > 0 ? (_mCount === 1 ? (_mStats[0].monthSi || _mStats[0].monthName || "") : `${_mStats[0].monthSi || _mStats[0].monthName || ""} \u2013 ${_mStats[_mCount - 1].monthSi || _mStats[_mCount - 1].monthName || ""}`) : ""; document.querySelectorAll(".dynamic-month-count").forEach(el => { el.textContent = `\u0DB8\u0DCF\u0DC3 ${_mCount}`; }); if (_pRange) { document.querySelectorAll(".dynamic-period-range").forEach(el => { el.textContent = _pRange; }); }
+  getUniqueActiveDays(activities = []) {
+    if (!Array.isArray(activities) || !activities.length) return 0;
+    return new Set(
+      activities
+        .map(a => (a?.date || a?.activityDate || "").toString().trim())
+        .filter(d => d && d !== "-" && d !== "N/A" && d !== "null" && d !== "undefined")
+    ).size;
+  }
+
+  getFixedCategories() {
+    return [
+      { id: "religious", nameSi: "ආගමික හා සංස්කෘතික", icon: "bi-flower1" },
+      { id: "dengue", nameSi: "ඩෙංගු මර්ධන", icon: "bi-bug" },
+      { id: "environment", nameSi: "පරිසර හා ශ්‍රමදාන", icon: "bi-tree" },
+      { id: "health", nameSi: "සෞඛ්‍ය සායන", icon: "bi-heart-pulse" },
+      { id: "education", nameSi: "අධ්‍යාපන/ළමා/ක්‍රීඩා", icon: "bi-book" },
+      { id: "agriculture", nameSi: "කෘෂිකාර්මික/ගෙවතු", icon: "bi-flower2" },
+      { id: "livelihood", nameSi: "ස්වයං රැකියා/ජීවනෝපාය", icon: "bi-briefcase" },
+      { id: "infrastructure", nameSi: "යටිතල පහසුකම්", icon: "bi-building" },
+      { id: "welfare", nameSi: "සමාජ සුභසාධන", icon: "bi-people" },
+      { id: "awareness", nameSi: "ප්‍රජා දැනුවත් කිරීම්", icon: "bi-megaphone" }
+    ];
+  }
+
+  classifyActivityCategory(act) {
+    const a = act || {};
+    const cats = this.getFixedCategories();
+    const txt = [a.titleSi, a.title, a.descriptionSi, a.description, a.actionsSi, a.purposeSi, a.resultsSi, a.categoryNameSi, a.categorySi, a.sectorSi, a.sector, a.category]
+      .filter(Boolean).join(" ").toLowerCase();
+    const has = (ks) => ks.some(k => txt.includes(k));
+    if (has(["දන්සැල්", "දන්සල", "භක්ති ගීත", "පොසොන්", "වෙසක්", "ඇසළ", "පෝය", "බෝධිපූජා", "පින්කම්", "ධර්ම", "විහාර", "පන්සල්", "දහම්පාසල", "සාහිත්‍ය", "අවුරුදු උත්සව", "සර්ව ආගමික", "ආශීර්වාද", "සීල", "බක්මහ", "කලා"])) return { id: cats[0].id, nameSi: cats[0].nameSi };
+    if (has(["ඩෙංගු", "ඩෙන්ගු", "මදුරු", "ධූමායන"])) return { id: cats[1].id, nameSi: cats[1].nameSi };
+    const m2 = has(["ශ්‍රමදාන", "ශ්‍රම දාන", "පිරිසිදු", "කසළ", "කසල", "රුක් රෝපණ", "පැළ සිටුවීම", "පරිසර", "වායු දූෂණය"]);
+    const m3 = !has(["දැනුවත්"]) && has(["වෛද්‍ය", "සායන", "ආයුර්වේද", "යෝග", "ඇරබික්", "ව්‍යායාම", "ඇස් කන්නාඩි", "බෝ නොවන රෝග", "සුවසෙත", "සෞඛ්‍ය", "දන්ත", "රුධිර"]);
+    const m4 = has(["පාසල්", "පාසල", "පෙරපාසල්", "ළමා", "ලමා", "දරුවන්", "ශිෂ්‍යත්ව", "දෙමළ භාෂා", "සම්මන්ත්‍රණ", "පුස්තකාල", "අධ්‍යාපන", "ක්‍රීඩා", "වොලිබෝල්", "ක්‍රිකට්", "තරගාවලි"]);
+    const m5 = has(["ගෙවතු", "කෘෂි", "වගා", "ගොවි", "පොල්", "තේ", "බුලත්", "ගම්මිරිස්", "කුරුඳු", "කරාබු", "බිම්මල්", "මී මැසි", "පැල බෙදා", "කටරොළු"]) || has(["අපනයන පොකුරු"]);
+    const m6 = has(["ස්වයං රැකියා", "පුහුණු", "ඉටිපන්දම්", "ඉදල්", "සබන්", "මහන මැෂින්", "මැස්මකින්", "මැහුම්", "බෑග්", "ආස්මි", "බයිට්", "අලෙවිපොළ", "පොල", "ව්‍යාපාර", "කර්මාන්ත", "රූපලාවණ්‍ය", "කොණ්ඩා", "ගෘහ ආර්ථික", "eco dry", "ජීවනෝපාය"]);
+    const m7 = !has(["පිරිසිදු"]) && (has(["කාපට්", "කොන්ක්‍රීට්", "කොන්ක්‍රිට්", "ගල්බැම්ම", "පාලම", "බෝක්කු", "පළල් කිරීම", "මාර්ග සංවර්ධන", "ඉදිකිරීම", "පිළිසකර", "මුල්ගල", "නිවාස සෑදීම", "නිවසක් සාදා", "ජල සැපයුම", "ජල අවශ්‍යතා", "විදුලි", "කාණු පද්ධති"]) || has(["පිලිසකර", "මර්ගය සන්වර්දනය", "ඇල මාර්ගය"]));
+    const m8 = has(["සුළි කුණාටු", "ආධාර", "අවතැන්", "වැඩිහිටි", "සුභසාධන", "පරිත්‍යාග", "ප්‍රදානය", "ආබාධිත", "වියළි ආහාර", "අධි අවදානම්", "සමෘද්ධි", "දිවා ආහාර"]);
+    const m9 = has(["දැනුවත් කිරීම", "මත්ද්‍රව්‍ය", "අපචාර", "ආරක්ෂාව", "උපදේශන", "වායු දූෂණය", "බෝ නොවන රෝග", "ගෘහ ආර්ථික"]);
+    if (m5) return { id: cats[5].id, nameSi: cats[5].nameSi };
+    if (m7) return { id: cats[7].id, nameSi: cats[7].nameSi };
+    if (m3) return { id: cats[3].id, nameSi: cats[3].nameSi };
+    if (m6) return { id: cats[6].id, nameSi: cats[6].nameSi };
+    if (m4) return { id: cats[4].id, nameSi: cats[4].nameSi };
+    if (m9) return { id: cats[9].id, nameSi: cats[9].nameSi };
+    if (m2) return { id: cats[2].id, nameSi: cats[2].nameSi };
+    if (m8) return { id: cats[8].id, nameSi: cats[8].nameSi };
+    return { id: cats[9].id, nameSi: cats[9].nameSi };
+  }
+
+  syncComputedMetrics() {
+    let acts = this.data.activities || [];
+    const siMonths = {
+      "01": "ජනවාරි", "02": "පෙබරවාරි", "03": "මාර්තු", "04": "අප්‍රේල්",
+      "05": "මැයි", "06": "ජූනි", "07": "ජූලි", "08": "අගෝස්තු",
+      "09": "සැප්තැම්බර්", "10": "ඔක්තෝම්බර්", "11": "නොවැම්බර්", "12": "දෙසැම්බර්"
+    };
+    const explicitSwaps = { "2026-12-10": "2026-10-12", "2026-11-10": "2026-10-11", "2026-11-08": "2026-08-11" };
+    acts.forEach(a => {
+      let raw = (a.date || a.activityDate || "").toString().trim().slice(0, 10);
+      if (explicitSwaps[raw]) raw = explicitSwaps[raw];
+      const gnStr = (a.gnNameSi || a.gnDivision || a.gnName || "").toString();
+      const txtStr = (a.titleSi || a.title || a.descriptionSi || a.description || "").toString();
+      if (raw === "2026-02-05" && (gnStr.includes("නිවිතිපිටිගොඩ") || txtStr.includes("පන්සල කන්ද") || txtStr.includes("කාණු පද්ධති"))) raw = "2026-10-05";
+      if (raw === "2026-04-09" && (gnStr.includes("වැලිකැටිය") || txtStr.includes("ගම්මිරිස් පැල"))) raw = "2026-09-04";
+      if (raw === "2026-01-10" && (gnStr.includes("පැදින්නෝරුව") || txtStr.includes("ලෝක ළමා දිනය"))) raw = "2026-09-29";
+      const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) {
+        let y = parseInt(m[1], 10), mo = parseInt(m[2], 10), d = parseInt(m[3], 10);
+        if (y > 2026 || y < 2025) y = 2026;
+        const ymStr = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        if (ymStr < "2025-11-01") y = 2026;
+        const tsRaw = (a.timestamp || a.submittedAt || a.createdAt || "").toString().trim().slice(0, 10);
+        const tsM = tsRaw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (tsM) {
+          const ty = parseInt(tsM[1], 10), tm = parseInt(tsM[2], 10);
+          if (y > ty) y = ty <= 2026 ? ty : 2026;
+          if (y === ty && mo > tm) {
+            if (d >= 1 && d <= tm && d <= 12 && mo <= 31) {
+              const tmp = mo; mo = d; d = tmp;
+            } else {
+              mo = tm;
+              if (d > 28) d = 28;
+            }
+          }
+        }
+        const fixed = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        a.date = fixed;
+        a.activityDate = fixed;
+        a.year = String(y);
+        a.month = fixed.slice(0, 7);
+        a.yearMonth = fixed.slice(0, 7);
+      }
+      const dateFixes = [
+        ["පින්නදූව", "ජනපදය", { "2026-07-07": "2026-06-07", "2026-07-24": "2026-06-24", "2026-09-25": "2026-08-25" }],
+        ["නාගහවත්ත", "", { "2026-07-13": "2026-06-13", "2026-07-21": "2026-06-21" }],
+        ["අඹගහවිල", "", { "2026-07-18": "2026-06-18", "2026-07-23": "2026-06-23" }],
+        ["මානවිල", "", { "2026-07-29": "2026-06-29" }],
+        ["පිලාන", "", { "2026-07-29": "2026-06-29" }]
+      ];
+      for (const [inc, exc, map] of dateFixes) {
+        if (gnStr.includes(inc) && (!exc || !gnStr.includes(exc)) && map[a.date]) {
+          a.date = map[a.date];
+          a.activityDate = a.date;
+          a.month = a.date.slice(0, 7);
+          a.yearMonth = a.date.slice(0, 7);
+          break;
+        }
+      }
+      if (/^\d{4}-\d{2}/.test(a.date || "")) {
+        const yy = a.date.slice(0, 4), mm = a.date.slice(5, 7);
+        a.monthSi = `${yy} ${siMonths[mm] || mm}`;
+      }
+      const cls = this.classifyActivityCategory(a);
+      if (cls) {
+        a.category = cls.id;
+        a.categoryNameSi = cls.nameSi;
+        a.categoryName = cls.nameSi;
+        a.categorySi = cls.nameSi;
+        a.sector = cls.nameSi;
+        a.sectorSi = cls.nameSi;
+        a.analyticalCategory = cls.nameSi;
+      }
+      if (a.progress === undefined || a.progress === null) a.progress = 100;
+      if (!a.statusLabelSi) a.statusLabelSi = a.status || "සම්පූර්ණයි";
+      if (!a.locationSi) a.locationSi = a.gnNameSi ? `${a.gnNameSi} වසම` : "අක්මීමන";
+      if (!a.purposeSi) a.purposeSi = a.description || a.titleSi || "";
+      if (!a.actionsSi) a.actionsSi = a.description || a.titleSi || "";
+      if (!a.resultsSi) a.resultsSi = `${a.categoryNameSi || "ප්‍රජා සංවර්ධන"} අංශය යටතේ වැඩසටහන සාර්ථකව අවසන් කරන ලදී.`;
+    });
+
+    if (Array.isArray(this.data.activities)) {
+      const rules = [
+        { k: "109c", fn: (g, t, d) => g.includes("ඇටඹගස්මුල්ල") && (d === "2026-04-12" || d === "2026-04-13") && /cricket|ක්‍රිකට්/i.test(t) },
+        { k: "109b", fn: (g, t, d) => g.includes("ඇටඹගස්මුල්ල") && (d === "2026-04-26" || d === "2026-04-27") && /බක්මහ|bakmaha/i.test(t) },
+        { k: "113d", fn: (g, t, d) => g.includes("බටදූව බටහිර") && d === "2026-07-17" && (t.includes("සුසාන") || t.includes("ඩෙංගු")) },
+        { k: "152r", fn: (g, t, d) => g.includes("තලහිටියාව") && d === "2026-08-13" && t.includes("දැනුවත්") },
+        { k: "109a", fn: (g, t, d) => g.includes("අඹගහවිල") && d === "2026-06-23" },
+        { k: "110p", fn: (g, t, d) => g.includes("පින්නදූව") && !g.includes("ජනපදය") && d === "2026-06-24" },
+        { k: "112m", fn: (g, t, d) => g.includes("මානවිල") && d === "2026-06-29" },
+        { k: "133n", fn: (g, t, d) => g.includes("නාගහවත්ත") && d === "2026-06-30" }
+      ];
+      const kept = {}, deduped = [];
+      this.data.activities.forEach(a => {
+        const g = (a.gnNameSi || a.gnDivision || a.gnName || "").toString();
+        const t = (a.titleSi || a.title || a.descriptionSi || a.description || "").toString();
+        const d = (a.date || a.activityDate || "").toString().trim().slice(0, 10);
+        const r = rules.find(x => x.fn(g, t, d));
+        if (!r) { deduped.push(a); return; }
+        if (!kept[r.k]) { kept[r.k] = a; deduped.push(a); return; }
+        const seen = new Set();
+        kept[r.k].photos = [...(Array.isArray(kept[r.k].photos) ? kept[r.k].photos : []), ...(Array.isArray(a.photos) ? a.photos : [])].filter(p => {
+          const pk = typeof p === "string" ? p : JSON.stringify(p);
+          if (seen.has(pk)) return false;
+          seen.add(pk);
+          return true;
+        });
+        const seenT = new Set();
+        kept[r.k].photoThumbnails = [...(Array.isArray(kept[r.k].photoThumbnails) ? kept[r.k].photoThumbnails : []), ...(Array.isArray(a.photoThumbnails) ? a.photoThumbnails : [])].filter(p => {
+          const pk = typeof p === "string" ? p : JSON.stringify(p);
+          if (seenT.has(pk)) return false;
+          seenT.add(pk);
+          return true;
+        });
+        kept[r.k].photoCount = kept[r.k].photos.length;
+      });
+      this.data.activities = deduped;
+      acts = deduped;
+    }
+
+    const monthMap = {};
+    acts.forEach(a => {
+      const ym = (a.yearMonth || a.month || (a.date || "").slice(0, 7)).trim();
+      if (!/^\d{4}-\d{2}$/.test(ym) || ym < "2025-11") return;
+      if (!monthMap[ym]) monthMap[ym] = [];
+      monthMap[ym].push(a);
+    });
+
+    let runningCumulative = 0;
+    const computedMonths = Object.keys(monthMap).sort().map(ym => {
+      const mActs = monthMap[ym];
+      const [yStr, mStr] = ym.split("-");
+      const sinhalaMonth = siMonths[mStr] || mStr;
+      const fullSi = `${yStr} ${sinhalaMonth}`;
+      const photos = mActs.reduce((acc, a) => acc + (Array.isArray(a.photoObjects) ? a.photoObjects.length : (Array.isArray(a.photos) ? a.photos.length : (Array.isArray(a.images) ? a.images.length : (Array.isArray(a.photoUrls) ? a.photoUrls.length : 0)))), 0);
+      const gns = new Set(mActs.map(a => a.gnNameSi || a.gnDivision || a.gnName).filter(Boolean)).size;
+      const activeDays = this.getUniqueActiveDays(mActs);
+      const count = mActs.length;
+      runningCumulative += count;
+      return {
+        month: ym, yearMonth: ym, monthKey: ym, monthName: fullSi, monthSi: fullSi, nameSi: fullSi, label: fullSi, sinhalaMonth,
+        count, totalActivities: count, totalProjects: count, activities: count, completed: count, ongoing: 0,
+        activeDays, photos,
+        divisions: gns, divisionsCount: gns, gnCount: gns, reportedDivisions: gns, reportingDivisions: gns, reportingGns: gns, activeGNCount: gns,
+        cumulative: runningCumulative, cumulativeCount: runningCumulative, cumulativeTotal: runningCumulative, cumulativeActivities: runningCumulative,
+        status: "100% සම්පූර්ණයි"
+      };
+    });
+
+    computedMonths.forEach((m, idx) => {
+      if (idx === 0) {
+        m.mom = null; m.momChange = null; m.momChangePct = null;
+      } else {
+        const prev = computedMonths[idx - 1].count || 0;
+        const diff = (m.count || 0) - prev;
+        const pct = prev > 0 ? Math.round((diff / prev) * 1000) / 10 : (m.count > 0 ? 100 : 0);
+        m.mom = pct; m.momChange = diff; m.momChangePct = pct;
+      }
+    });
+
+    if (computedMonths.length > 0) {
+      this.data.monthlyStats = computedMonths;
+      this.data.monthlyProgress = computedMonths;
+      this.data.monthlySummary = computedMonths;
+    }
+
+    const uniqueDays = this.getUniqueActiveDays(acts);
+    const totalPhotos = this.data.photoGallery?.length || acts.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0);
+
+    if (Array.isArray(this.data.gnDivisions)) {
+      this.data.gnDivisions.forEach(g => {
+        const gActs = acts.filter(a => (g.nameSi && a.gnNameSi === g.nameSi) || (g.name && (a.gnDivision === g.name || a.gnName === g.name)));
+        const gPhotos = gActs.reduce((acc, a) => acc + (a.images ? a.images.length : (a.photos ? a.photos.length : 0)), 0);
+        const catFreq = {};
+        const catSet = new Set();
+        const dateSet = new Set();
+        gActs.forEach(a => {
+          if (a.category) catSet.add(a.category);
+          if (a.date) dateSet.add(a.date);
+          const cn = a.categoryNameSi || "ප්‍රජා සංවර්ධන";
+          catFreq[cn] = (catFreq[cn] || 0) + 1;
+        });
+        const topSector = Object.entries(catFreq).sort((x, y) => y[1] - x[1])[0]?.[0] || "ප්‍රජා සංවර්ධන";
+        const sortedDates = Array.from(dateSet).sort();
+
+        g.totalProjects = gActs.length;
+        g.activityCount = gActs.length;
+        g.completed = gActs.length;
+        g.completedCount = gActs.length;
+        g.ongoing = 0;
+        g.ongoingCount = 0;
+        g.diversity = catSet.size;
+        g.activeDays = dateSet.size;
+        g.photos = gPhotos;
+        g.photoCount = gPhotos;
+        g.totalPhotos = gPhotos;
+        g.progress = gActs.length > 0 ? 100 : 0;
+        g.progressPercentage = g.progress;
+        g.sabhaNameSi = g.sabhaNameSi || `${g.nameSi} ප්‍රජා සංවර්ධන සභාව`;
+        g.keySectorSi = topSector;
+        g.lastReportDate = sortedDates.length ? sortedDates[sortedDates.length - 1] : "";
+      });
+    }
+
+    const repGnsCount = Array.isArray(this.data.gnDivisions)
+      ? this.data.gnDivisions.filter(g => (g.totalProjects || g.activityCount || 0) > 0).length
+      : 63;
+
+    for (const target of [this.data.summary, this.data.overview, this.data.secretariatInfo]) {
+      if (!target) continue;
+      target.totalActivities = acts.length;
+      target.completedActivities = acts.length;
+      target.ongoingActivities = 0;
+      target.activeDays = uniqueDays;
+      target.totalActiveDays = uniqueDays;
+      target.totalPhotographs = totalPhotos;
+      target.totalPhotos = totalPhotos;
+      target.uniqueDrivePhotos = totalPhotos;
+      target.reportingGns = repGnsCount;
+      target.reportingGNs = repGnsCount;
+      target.activeGNCount = repGnsCount;
+    }
+
+    const totalActs = acts.length || 1;
+    const catColors = ["#f59e0b", "#ef4444", "#10b981", "#ec4899", "#3b82f6", "#84cc16", "#8b5cf6", "#6366f1", "#14b8a6", "#f97316"];
+    const fixedCats = this.getFixedCategories().map((c, idx) => {
+      const cnt = acts.filter(a => a.category === c.id || a.categoryNameSi === c.nameSi).length;
+      const pct = acts.length ? Math.round((cnt / totalActs) * 1000) / 10 : 0;
+      return {
+        id: c.id, nameSi: c.nameSi, name: c.nameSi, label: c.nameSi, icon: c.icon, color: c.color || catColors[idx],
+        desc: c.desc || c.description || c.nameSi || "", description: c.description || c.desc || c.nameSi || "",
+        count: cnt, total: cnt, pct, percentage: pct, share: pct
+      };
+    });
+    this.data.categories = fixedCats.map(c => ({ ...c }));
+    this.data.analyticalCategories = fixedCats.map(c => ({ ...c }));
+
+    this.data.analytics = this.data.analytics || {};
+    const _dateGroups = {};
+    acts.forEach(a => {
+      const d = (a.date || a.activityDate || "").toString().trim().slice(0, 10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+        if (!_dateGroups[d]) _dateGroups[d] = [];
+        _dateGroups[d].push(a);
+      }
+    });
+    const _siDays = ["ඉරිදා", "සඳුදා", "අඟහරුවාදා", "බදාදා", "බ්‍රහස්පතින්දා", "සිකුරාදා", "සෙනසුරාදා"];
+    this.data.analytics.heatmap = Object.keys(_dateGroups).sort().map(d => ({ date: d, count: _dateGroups[d].length }));
+    this.data.analytics.peakDates = Object.keys(_dateGroups)
+      .sort((a, b) => _dateGroups[b].length - _dateGroups[a].length || b.localeCompare(a))
+      .slice(0, 8)
+      .map(d => ({
+        date: d,
+        count: _dateGroups[d].length,
+        daySi: _siDays[new Date(d + "T00:00:00Z").getUTCDay()] || "",
+        keyActivities: _dateGroups[d].slice(0, 2).map(x => x.titleSi || x.title || "").filter(Boolean).join(" • ")
+      }));
+    this.filteredActivities = [...(this.data.activities || [])];
+  }
+
+  renderKPIs() {
+    const _mStats = this.data.monthlyStats || [];
+    const _mCount = _mStats.length;
+    const _pRange = _mCount > 0
+      ? (_mCount === 1 ? (_mStats[0].monthSi || _mStats[0].monthName || "") : `${_mStats[0].monthSi || _mStats[0].monthName || ""} – ${_mStats[_mCount - 1].monthSi || _mStats[_mCount - 1].monthName || ""}`)
+      : "";
+    document.querySelectorAll(".dynamic-month-count").forEach(el => { el.textContent = `මාස ${_mCount}`; });
+    if (_pRange) {
+      document.querySelectorAll(".dynamic-period-range").forEach(el => { el.textContent = _pRange; });
+    }
     const sec = this.data.overview || this.data.secretariatInfo || {};
 
     const totalAct = sec.totalActivities || this.data.activities?.length || 0;
@@ -1504,7 +1840,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
         return false;
       }
       // Month filter
-      if (this.selectedMonth !== "all" && act.monthSi !== this.selectedMonth) {
+      if (this.selectedMonth !== "all" && act.month !== this.selectedMonth && act.yearMonth !== this.selectedMonth && act.monthSi !== this.selectedMonth) {
         return false;
       }
       // Year filter
@@ -1523,11 +1859,12 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       if (this.searchQuery) {
         const q = this.searchQuery;
         const matchTitle = (act.titleSi || "").toLowerCase().includes(q);
+        const matchDesc = (act.description || "").toLowerCase().includes(q);
         const matchPurpose = (act.purposeSi || "").toLowerCase().includes(q);
         const matchActions = (act.actionsSi || "").toLowerCase().includes(q);
         const matchGn = (act.gnNameSi || "").toLowerCase().includes(q);
         const matchSabha = (act.sabhaNameSi || "").toLowerCase().includes(q);
-        if (!matchTitle && !matchPurpose && !matchActions && !matchGn && !matchSabha) {
+        if (!matchTitle && !matchDesc && !matchPurpose && !matchActions && !matchGn && !matchSabha) {
           return false;
         }
       }
@@ -2323,25 +2660,17 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     let reportActs = this.data.activities.filter(a => {
       if (selectedGn !== "all" && a.gnNameSi !== selectedGn) return false;
       if (selectedCategory !== "all" && a.category !== selectedCategory) return false;
-      if (selectedMonth !== "all" && a.monthSi !== selectedMonth) return false;
+      if (selectedMonth !== "all" && a.monthSi !== selectedMonth && a.month !== selectedMonth && a.yearMonth !== selectedMonth) return false;
       if (selectedYear !== "all" && String(a.year) !== String(selectedYear)) return false;
 
-      // Reporting Period filter
-      if (selectedPeriod === "h1") {
-        const h1Months = ["ජනවාරි", "පෙබරවාරි", "මාර්තු", "අප්‍රේල්", "මැයි", "ජූනි"];
-        if (!h1Months.includes(a.monthSi)) return false;
-      } else if (selectedPeriod === "h2") {
-        const h2Months = ["ජූලි", "අගෝස්තු", "සැප්තැම්බර්", "ඔක්තෝබර්", "නොවැම්බර්", "දෙසැම්බර්"];
-        if (!h2Months.includes(a.monthSi)) return false;
-      } else if (selectedPeriod === "q1") {
-        if (!["ජනවාරි", "පෙබරවාරි", "මාර්තු"].includes(a.monthSi)) return false;
-      } else if (selectedPeriod === "q2") {
-        if (!["අප්‍රේල්", "මැයි", "ජූනි"].includes(a.monthSi)) return false;
-      } else if (selectedPeriod === "q3") {
-        if (!["ජූලි", "අගෝස්තු", "සැප්තැම්බර්"].includes(a.monthSi)) return false;
-      } else if (selectedPeriod === "q4") {
-        if (!["ඔක්තෝබර්", "නොවැම්බර්", "දෙසැම්බර්"].includes(a.monthSi)) return false;
-      }
+      // Reporting Period filter (numeric month so spelling variations never fail)
+      const mNum = parseInt(String(a.date || "").slice(5, 7), 10);
+      if (selectedPeriod === "h1" && !(mNum >= 1 && mNum <= 6)) return false;
+      if (selectedPeriod === "h2" && !(mNum >= 7 && mNum <= 12)) return false;
+      if (selectedPeriod === "q1" && !(mNum >= 1 && mNum <= 3)) return false;
+      if (selectedPeriod === "q2" && !(mNum >= 4 && mNum <= 6)) return false;
+      if (selectedPeriod === "q3" && !(mNum >= 7 && mNum <= 9)) return false;
+      if (selectedPeriod === "q4" && !(mNum >= 10 && mNum <= 12)) return false;
 
       return true;
     });
@@ -2355,19 +2684,18 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     // Filter Monthly Stats
     let reportMonthly = this.data.monthlyStats;
     if (selectedMonth !== "all") {
-      reportMonthly = this.data.monthlyStats.filter(m => m.monthSi === selectedMonth);
-    } else if (selectedPeriod === "h1") {
-      reportMonthly = this.data.monthlyStats.slice(0, 6);
-    } else if (selectedPeriod === "h2") {
-      reportMonthly = this.data.monthlyStats.slice(6);
-    } else if (selectedPeriod === "q1") {
-      reportMonthly = this.data.monthlyStats.slice(0, 3);
-    } else if (selectedPeriod === "q2") {
-      reportMonthly = this.data.monthlyStats.slice(3, 6);
-    } else if (selectedPeriod === "q3") {
-      reportMonthly = this.data.monthlyStats.slice(6, 9);
-    } else if (selectedPeriod === "q4") {
-      reportMonthly = this.data.monthlyStats.slice(9);
+      reportMonthly = this.data.monthlyStats.filter(m => m.monthSi === selectedMonth || m.monthKey === selectedMonth);
+    } else if (selectedPeriod !== "all") {
+      reportMonthly = this.data.monthlyStats.filter(m => {
+        const mn = parseInt(String(m.monthKey || m.month || "").slice(5, 7), 10);
+        if (selectedPeriod === "h1") return mn >= 1 && mn <= 6;
+        if (selectedPeriod === "h2") return mn >= 7 && mn <= 12;
+        if (selectedPeriod === "q1") return mn >= 1 && mn <= 3;
+        if (selectedPeriod === "q2") return mn >= 4 && mn <= 6;
+        if (selectedPeriod === "q3") return mn >= 7 && mn <= 9;
+        if (selectedPeriod === "q4") return mn >= 10 && mn <= 12;
+        return true;
+      });
     }
 
     // Period Display Text
@@ -2406,15 +2734,14 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       const totalActs = reportActs.length;
       const completedActs = reportActs.length;
       const ongoingActs = reportActs.filter(a => a.status === "ongoing").length;
-      const totalBeneficiaries = reportActs.reduce((acc, a) => acc + (parseInt(a.beneficiaries) || 120), 0);
       const totalPhotos = reportActs.reduce((acc, a) => acc + (a.images ? a.images.length : 0), 0);
-      const overallProgress = totalActs > 0 ? Math.round((completedActs / totalActs) * 100) : 86.8;
+      const overallProgress = totalActs > 0 ? Math.round((completedActs / totalActs) * 100) : 100;
 
       // Sector summary calculation
       const sectorStats = {};
       this.data.categories.forEach(c => {
         if (c.id !== "all") {
-          sectorStats[c.id] = { name: c.nameSi, projects: 0, completed: 0, photos: 0, beneficiaries: 0 };
+          sectorStats[c.id] = { name: c.nameSi, projects: 0, completed: 0, photos: 0 };
         }
       });
       reportActs.forEach(a => {
@@ -2422,7 +2749,6 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
           sectorStats[a.category].projects += 1;
           sectorStats[a.category].completed += 1;
           sectorStats[a.category].photos += (a.images ? a.images.length : 0);
-          sectorStats[a.category].beneficiaries += (parseInt(a.beneficiaries) || 100);
         }
       });
 
@@ -2446,6 +2772,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
 
       let actSummaryRows = "";
       reportActs.forEach((act, idx) => {
+        const progVal = act.progress ?? 100;
         actSummaryRows += `
           <tr>
             <td style="text-align: center;">${idx + 1}</td>
@@ -2454,7 +2781,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
             <td>${act.categoryNameSi || act.categoryName || "ප්‍රජා සංවර්ධන"}</td>
             <td>${act.date}</td>
             <td style="text-align: center;">${(act.images ? act.images.length : 0)}</td>
-            <td style="text-align: center; font-weight: 700; color: #15803D;">${act.progress}%</td>
+            <td style="text-align: center; font-weight: 700; color: #15803D;">${progVal}%</td>
           </tr>
         `;
       });
@@ -2510,6 +2837,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
               <th>ග්‍රාම නිලධාරී වසම</th>
               <th>අංශය</th>
               <th>දිනය</th>
+              <th style="text-align: center;">ඡායාරූප</th>
               <th style="text-align: center;">ප්‍රගතිය</th>
             </tr>
           </thead>
@@ -2529,8 +2857,9 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       csvData = "අංකය,වැඩසටහනේ නම,ග්‍රාම නිලධාරී වසම,ප්‍රජා සංවර්ධන සභාව,අංශය,දිනය,ඡායාරූප ගණන,ප්‍රගතිය (%)\n";
 
       reportActs.forEach((a, i) => {
-        excelRows.push([i + 1, a.titleSi, a.gnNameSi, a.sabhaNameSi, a.categoryNameSi, a.date, (a.images ? a.images.length : 0), `${a.progress}%`]);
-        csvData += `${i + 1},"${a.titleSi}","${a.gnNameSi}","${a.sabhaNameSi}","${a.categoryNameSi}","${a.date}",${a.images ? a.images.length : 0},${a.progress}%\n`;
+        const progVal = a.progress ?? 100;
+        excelRows.push([i + 1, a.titleSi, a.gnNameSi, a.sabhaNameSi, a.categoryNameSi, a.date, (a.images ? a.images.length : 0), `${progVal}%`]);
+        csvData += `${i + 1},"${a.titleSi}","${a.gnNameSi}","${a.sabhaNameSi}","${a.categoryNameSi}","${a.date}",${a.images ? a.images.length : 0},${progVal}%\n`;
       });
     }
 
@@ -2539,7 +2868,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     // -------------------------------------------------------------
     else if (reportType === "2") {
       reportTitle = "මාසික සංවර්ධන ප්‍රගති වාර්තාව 2026";
-      reportSubtitle = `කාලානුක්‍රමික ප්‍රගති වේගය හා මාසික මූල්‍ය ආයෝජන සමාලෝචනය (${periodText})`;
+      reportSubtitle = `කාලානුක්‍රමික ප්‍රගති වේගය හා මාසික සමාලෝචනය (${periodText})`;
 
       let monthlyRowsHtml = "";
       excelRows = [
@@ -2592,7 +2921,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
           </div>
         </div>
 
-        <h4 class="report-section-heading">1. මාසික ප්‍රගති සහ මූල්‍ය යෙදවුම් සංසන්දනය</h4>
+        <h4 class="report-section-heading">1. මාසික ප්‍රගති හා වසම් ආවරණ සංසන්දනය</h4>
         <table class="report-table">
           <thead>
             <tr>
@@ -2603,7 +2932,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
               <th style="text-align: center;">දින</th>
               <th style="text-align: center;">ඡායාරූප</th>
               <th style="text-align: center;">සමුච්චිත</th>
-              <th style="text-align: center;">ප්‍රගතිය</th>
+              <th style="text-align: center;">ආවරණය</th>
             </tr>
           </thead>
           <tbody>
@@ -2613,7 +2942,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
 
         <h4 class="report-section-heading">2. මාසික ප්‍රගති විශ්ලේෂණ සටහන</h4>
         <p style="font-size: 0.92rem; line-height: 1.8; color: #334155;">
-          තෝරාගත් කාලසීමාව තුළ මාසික වැඩසටහන් ක්‍රියාත්මක වීමේ සාමාන්‍ය සාර්ථකත්ව ප්‍රතිශතය 86% කට වඩා ඉහළ මට්ටමක පවතී. මූල්‍ය සම්පත් යෙදවීමේ වේගය මාසික ප්‍රතිපාදන සැලැස්මට අනුකූලව පවත්වා ගෙන ඇති අතර, එක් එක් මාසයේ ප්‍රමුඛතා අනුව ග්‍රාමීය ප්‍රජා අවශ්‍යතා සපුරා ලීමට ප්‍රජා සංවර්ධන සභා නායකත්වය ලබා දී ඇත.
+          තෝරාගත් කාලසීමාව තුළ වාර්තා වූ සියලුම ප්‍රජා සංවර්ධන වැඩසටහන් 100% ක් සාර්ථකව අවසන් කර ඇති අතර, සත්‍යාපිත ක්ෂේත්‍ර ඡායාරූප සහිතව මාසික ප්‍රගතිය අඛණ්ඩව පවත්වාගෙන ගොස් ඇත.
         </p>
       `;
     }
@@ -2640,31 +2969,36 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
 
       if (divActs.length > 0) {
         divActs.forEach((act, idx) => {
+          const progVal = act.progress ?? 100;
+          const statusLbl = act.statusLabelSi || act.status || "සම්පූර්ණයි";
+          const purpose = act.purposeSi || act.description || act.titleSi || "-";
+          const actions = act.actionsSi || act.description || act.titleSi || "-";
+          const results = act.resultsSi || "සාර්ථකව නිම කරන ලදී.";
           actListHtml += `
             <div style="border: 1px solid #CBD5E1; border-radius: 8px; padding: 1.2rem; margin-bottom: 1.2rem; background: #F8FAFC;">
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem;">
                 <h5 style="font-size: 1.05rem; font-weight: 800; color: #1D4ED8;">${idx + 1}. ${act.titleSi || act.title || act.description || "වැඩසටහන"}</h5>
-                <span style="background: #DCFCE7; color: #15803D; font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 999px;">${act.statusLabelSi} (${act.progress}%)</span>
+                <span style="background: #DCFCE7; color: #15803D; font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 999px;">${statusLbl} (${progVal}%)</span>
               </div>
               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 0.82rem; color: #475569; margin-bottom: 0.8rem; background: #FFF; padding: 8px; border-radius: 6px; border: 1px solid #E2E8F0;">
                 <div><strong>පැවැත්වූ දිනය:</strong> ${act.date}</div>
                 <div><strong>ස්ථානය:</strong> ${act.locationSi || gn.nameSi}</div>
               </div>
               <div style="font-size: 0.86rem; color: #1E293B; margin-bottom: 0.5rem;">
-                <strong>වැඩසටහනේ විස්තරය:</strong> ${act.purposeSi}
+                <strong>වැඩසටහනේ විස්තරය:</strong> ${purpose}
               </div>
               <div style="font-size: 0.86rem; color: #1E293B; margin-bottom: 0.5rem;">
-                <strong>සිදු කරන ලද කාර්යයන්:</strong> ${act.actionsSi}
+                <strong>සිදු කරන ලද කාර්යයන්:</strong> ${actions}
               </div>
               <div style="font-size: 0.86rem; color: #15803D;">
-                <strong>ලබාගත් ප්‍රතිඵල:</strong> ${act.resultsSi}
+                <strong>ලබාගත් ප්‍රතිඵල:</strong> ${results}
               </div>
             </div>
           `;
 
           const pCount = act.images ? act.images.length : 0;
-          excelRows.push([idx + 1, act.titleSi, act.date, act.locationSi || gn.nameSi, act.purposeSi, act.actionsSi, act.resultsSi, pCount, `${act.progress}%`]);
-          csvData += `${idx + 1},"${act.titleSi || act.title || act.description || "වැඩසටහන"}","${act.date}","${act.locationSi || gn.nameSi}","${(act.purposeSi || '').replace(/"/g, '""')}","${(act.actionsSi || '').replace(/"/g, '""')}","${(act.resultsSi || '').replace(/"/g, '""')}",${pCount},${act.progress}%\n`;
+          excelRows.push([idx + 1, act.titleSi, act.date, act.locationSi || gn.nameSi, purpose, actions, results, pCount, `${progVal}%`]);
+          csvData += `${idx + 1},"${act.titleSi || act.title || act.description || "වැඩසටහන"}","${act.date}","${act.locationSi || gn.nameSi}","${purpose.replace(/"/g, '""')}","${actions.replace(/"/g, '""')}","${results.replace(/"/g, '""')}",${pCount},${progVal}%\n`;
         });
       } else {
         actListHtml = `
@@ -2736,6 +3070,12 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
         });
       }
 
+      const r4Prog = act.progress ?? 100;
+      const r4Status = act.statusLabelSi || act.status || "සම්පූර්ණයි";
+      const r4Purpose = act.purposeSi || act.description || act.titleSi || "-";
+      const r4Actions = act.actionsSi || act.description || act.titleSi || "-";
+      const r4Results = act.resultsSi || "සාර්ථකව නිම කරන ලදී.";
+
       bodyHtml = `
         <div class="report-kpi-grid">
           <div class="report-kpi-box">
@@ -2752,7 +3092,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
           </div>
           <div class="report-kpi-box">
             <div class="report-kpi-label">ව්‍යාපෘතියේ ප්‍රගතිය</div>
-            <div class="report-kpi-val" style="color: #15803D;">${act.progress}%</div>
+            <div class="report-kpi-val" style="color: #15803D;">${r4Prog}%</div>
           </div>
         </div>
 
@@ -2771,19 +3111,19 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
           </tr>
           <tr>
             <td style="font-weight: 700; background: #F8FAFC;">4. වැඩසටහනේ විස්තරය</td>
-            <td colspan="3">${act.purposeSi}</td>
+            <td colspan="3">${r4Purpose}</td>
           </tr>
           <tr>
             <td style="font-weight: 700; background: #F8FAFC;">5. සිදු කරන ලද කාර්යයන්</td>
-            <td colspan="3">${act.actionsSi}</td>
+            <td colspan="3">${r4Actions}</td>
           </tr>
           <tr>
             <td style="font-weight: 700; background: #F8FAFC;">8. ව්‍යාපෘතියේ ප්‍රගතිය</td>
-            <td style="font-weight: 800; color: #15803D;">${act.progress}% (${act.statusLabelSi})</td>
+            <td colspan="3" style="font-weight: 800; color: #15803D;">${r4Prog}% (${r4Status})</td>
           </tr>
           <tr>
             <td style="font-weight: 700; background: #F8FAFC;">7. ලබාගත් ප්‍රතිඵල</td>
-            <td colspan="3" style="color: #15803D; font-weight: 600;">${act.resultsSi}</td>
+            <td colspan="3" style="color: #15803D; font-weight: 600;">${r4Results}</td>
           </tr>
           <tr>
             <td style="font-weight: 700; background: #F8FAFC;">ක්‍රියාත්මක තත්ත්වය</td>
@@ -2809,14 +3149,14 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
         ["ප්‍රජා සංවර්ධන සභාව", act.sabhaNameSi],
         ["2. පැවැත්වූ දිනය", act.date],
         ["3. ස්ථානය", act.locationSi || act.gnNameSi],
-        ["4. වැඩසටහනේ විස්තරය", act.purposeSi],
-        ["5. සිදු කරන ලද කාර්යයන්", act.actionsSi],
-        ["7. ලබාගත් ප්‍රතිඵල", act.resultsSi],
-        ["8. ව්‍යාපෘතියේ ප්‍රගතිය", `${act.progress}% (${act.statusLabelSi})`],
+        ["4. වැඩසටහනේ විස්තරය", r4Purpose],
+        ["5. සිදු කරන ලද කාර්යයන්", r4Actions],
+        ["7. ලබාගත් ප්‍රතිඵල", r4Results],
+        ["8. ව්‍යාපෘතියේ ප්‍රගතිය", `${r4Prog}% (${r4Status})`],
         ["සත්‍යාපිත ඡායාරූප ගණන", (act.images ? act.images.length : 0)],
         ["සම්පූර්ණ කිරීමේ තත්ත්වය", "100% සම්පූර්ණයි"]
       ];
-      csvData = `ක්ෂේත්‍රය,විස්තරය\n"1. වැඩසටහනේ නම","${act.titleSi || act.title || act.description || "වැඩසටහන"}"\n"ග්‍රාම නිලධාරී වසම","${act.gnNameSi}"\n"ප්‍රජා සංවර්ධන සභාව","${act.sabhaNameSi}"\n"2. පැවැත්වූ දිනය","${act.date}"\n"3. ස්ථානය","${act.locationSi || act.gnNameSi}"\n"4. වැඩසටහනේ විස්තරය","${(act.purposeSi || '').replace(/"/g, '""')}"\n"5. සිදු කරන ලද කාර්යයන්","${(act.actionsSi || '').replace(/"/g, '""')}"\"7. ලබාගත් ප්‍රතිඵල","${(act.resultsSi || '').replace(/"/g, '""')}"\n"8. ප්‍රගතිය","${act.progress}%"\n"සත්‍යාපිත ඡායාරූප ගණන",${act.images ? act.images.length : 0}\n`;
+      csvData = `ක්ෂේත්‍රය,විස්තරය\n"1. වැඩසටහනේ නම","${act.titleSi || act.title || act.description || "වැඩසටහන"}"\n"ග්‍රාම නිලධාරී වසම","${act.gnNameSi}"\n"ප්‍රජා සංවර්ධන සභාව","${act.sabhaNameSi}"\n"2. පැවැත්වූ දිනය","${act.date}"\n"3. ස්ථානය","${act.locationSi || act.gnNameSi}"\n"4. වැඩසටහනේ විස්තරය","${r4Purpose.replace(/"/g, '""')}"\n"5. සිදු කරන ලද කාර්යයන්","${r4Actions.replace(/"/g, '""')}"\n"7. ලබාගත් ප්‍රතිඵල","${r4Results.replace(/"/g, '""')}"\n"8. ප්‍රගතිය","${r4Prog}%"\n"සත්‍යාපිත ඡායාරූප ගණන",${act.images ? act.images.length : 0}\n`;
     }
 
     // -------------------------------------------------------------
@@ -2826,7 +3166,27 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       reportTitle = "ඡායාරූප සහිත ක්ෂේත්‍ර ප්‍රජා සංවර්ධන වැඩසටහන් වාර්තාව";
       reportSubtitle = `බිම් මට්ටමේ සංවර්ධන සාක්ෂි හා ප්‍රගති ඡායාරූප එකතුව (${periodText})`;
 
-      const galleryItems = this.data.photoGallery || [];
+      const galleryItems = [];
+      const seenGal = new Set();
+      reportActs.forEach(a => {
+        (a.photos || []).forEach(p => {
+          const u = this.resolveDriveImageUrl(p);
+          const pk = (typeof p === "object" && (p.driveFileId || p.url)) || u;
+          if (u && !seenGal.has(pk)) {
+            seenGal.add(pk);
+            galleryItems.push({
+              url: u,
+              driveFileId: p?.driveFileId,
+              titleSi: a.titleSi || a.title,
+              gnDivision: a.gnNameSi || a.gnDivision,
+              date: a.date,
+              locationSi: a.locationSi || a.gnNameSi,
+              captionSi: p?.captionSi || a.description || a.titleSi,
+              progress: a.progress ?? 100
+            });
+          }
+        });
+      });
       let photoCardsHtml = "";
 
       excelRows = [
@@ -2891,16 +3251,16 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
 
       this.data.categories.forEach((cat, idx) => {
         if (cat.id !== "all") {
-          const catActs = this.data.activities.filter(a => a.category === cat.id);
+          const catActs = reportActs.filter(a => a.category === cat.id);
           const cCount = catActs.length;
-          const cComp = catActs.filter(a => a.status === "completed").length;
+          const cComp = catActs.filter(a => a.status !== "ongoing").length;
           const cOng = catActs.filter(a => a.status === "ongoing").length;
           const cPhotos = catActs.reduce((acc, a) => acc + (a.images ? a.images.length : 0), 0);
           const cProg = cCount > 0 ? Math.round((cComp / cCount) * 100) : 100;
 
           categoryRowsHtml += `
             <tr>
-              <td style="text-align: center;">${idx}</td>
+              <td style="text-align: center;">${idx + 1}</td>
               <td style="font-weight: 700; color: #1D4ED8;">${cat.nameSi}</td>
               <td style="text-align: center; font-weight: 700;">${cCount}</td>
               <td style="text-align: center; color: #15803D; font-weight: 700;">${cComp}</td>
@@ -2910,13 +3270,13 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
             </tr>
           `;
 
-          excelRows.push([idx, cat.nameSi, cCount, cComp, cOng, cPhotos, `${cProg}%`]);
-          csvData += `${idx},"${cat.nameSi}",${cCount},${cComp},${cOng},${cPhotos},${cProg}%\n`;
+          excelRows.push([idx + 1, cat.nameSi, cCount, cComp, cOng, cPhotos, `${cProg}%`]);
+          csvData += `${idx + 1},"${cat.nameSi}",${cCount},${cComp},${cOng},${cPhotos},${cProg}%\n`;
         }
       });
 
       bodyHtml = `
-        <h4 class="report-section-heading">1. සංවර්ධන ක්ෂේත්‍ර අනුව වැඩසටහන් හා මූල්‍ය ආයෝජනය</h4>
+        <h4 class="report-section-heading">1. සංවර්ධන ක්ෂේත්‍ර අනුව වැඩසටහන් ප්‍රගතිය</h4>
         <table class="report-table">
           <thead>
             <tr>
@@ -2958,6 +3318,9 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       csvData = "අංකය,ග්‍රාම නිලධාරී වසම,ප්‍රජා සංවර්ධන සභාව,ප්‍රමුඛ ක්ෂේත්‍රය,මුළු වැඩසටහන්,සම්පූර්ණ වූ,ක්‍රියාත්මකයි,සත්‍යාපිත ඡායාරූප,ප්‍රගතිය (%)\n";
 
       reportGns.forEach((g, idx) => {
+        const gComp = g.completed ?? g.completedCount ?? g.totalProjects ?? 0;
+        const gOng = g.ongoing ?? g.ongoingCount ?? 0;
+        const gProg = g.progress ?? g.progressPercentage ?? (g.totalProjects > 0 ? 100 : 0);
         gnTableRowsHtml += `
           <tr>
             <td style="text-align: center;">${idx + 1}</td>
@@ -2965,15 +3328,15 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
             <td style="font-size: 0.82rem;">${g.sabhaNameSi}</td>
             <td>${g.keySectorSi}</td>
             <td style="text-align: center; font-weight: 700;">${g.totalProjects}</td>
-            <td style="text-align: center; color: #15803D; font-weight: 700;">${g.completed}</td>
-            <td style="text-align: center; color: #1D4ED8;">${g.ongoing}</td>
+            <td style="text-align: center; color: #15803D; font-weight: 700;">${gComp}</td>
+            <td style="text-align: center; color: #1D4ED8;">${gOng}</td>
             <td style="text-align: center; font-weight: 700; color: #0D9488;">${g.photoCount || 0}</td>
-            <td style="text-align: center; font-weight: 800; color: #15803D;">${g.progress}%</td>
+            <td style="text-align: center; font-weight: 800; color: #15803D;">${gProg}%</td>
           </tr>
         `;
 
-        excelRows.push([idx + 1, g.nameSi, g.sabhaNameSi, g.keySectorSi, g.totalProjects, g.completed, g.ongoing, g.photoCount || 0, `${g.progress}%`]);
-        csvData += `${idx + 1},"${g.nameSi}","${g.sabhaNameSi}","${g.keySectorSi}",${g.totalProjects},${g.completed},${g.ongoing},${g.photoCount || 0},${g.progress}%\n`;
+        excelRows.push([idx + 1, g.nameSi, g.sabhaNameSi, g.keySectorSi, g.totalProjects, gComp, gOng, g.photoCount || 0, `${gProg}%`]);
+        csvData += `${idx + 1},"${g.nameSi}","${g.sabhaNameSi}","${g.keySectorSi}",${g.totalProjects},${gComp},${gOng},${g.photoCount || 0},${gProg}%\n`;
       });
 
       bodyHtml = `
@@ -3204,13 +3567,20 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
   renderStatusTab() {
     const dataQuality = this.data.dataQualityLog || window.DATA_QUALITY_LOG || {};
     const summary = dataQuality.summary || {};
+    const audit = this.data.dataAudits || this.data.summary || {};
+    const uniqueCount = this.data.activities.length;
+    const dupsCount = summary.duplicatesMerged ?? audit.duplicatesMerged ?? (569 - uniqueCount);
+    const rawCount = summary.totalRawActivities ?? summary.rawSlotsHarvested ?? audit.rawSlotsHarvested ?? (uniqueCount + dupsCount);
 
     // Update Top Counters
     const totalEl = document.getElementById("statusTotalUniqueActivities");
-    if (totalEl) totalEl.textContent = `${this.data.activities.length} වැඩසටහන්`;
+    if (totalEl) totalEl.textContent = `${uniqueCount} වැඩසටහන්`;
 
     const dupEl = document.getElementById("statusDuplicatesCount");
-    if (dupEl) dupEl.textContent = `අනුපිටපත් ${summary.duplicatesMerged || 75}ක් ඉවත් කරන ලදී (Raw: ${summary.totalRawActivities || (this.data.activities.length + 75)} → Unique: ${this.data.activities.length})`;
+    if (dupEl) dupEl.textContent = `අනුපිටපත් ${dupsCount}ක් ඉවත් කරන ලදී (Raw: ${rawCount} → Unique: ${uniqueCount})`;
+
+    const dupTabBadge = document.getElementById("statusDupTabCount");
+    if (dupTabBadge) dupTabBadge.textContent = dupsCount;
 
     const covEl = document.getElementById("statusCoverageSummary");
     if (covEl) {
@@ -3224,7 +3594,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       dupTbody.innerHTML = "";
       const dups = dataQuality.confirmedDuplicates || [];
       if (dups.length === 0) {
-        dupTbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #10B981; padding: 1.5rem;">අනුපිටපත් වාර්තා කිසිවක් හමු නොවීය.</td></tr>`;
+        dupTbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #10B981; padding: 1.5rem;">Google Forms පත්‍රිකා 6 හි තිබූ සටහන් ${rawCount} අතුරින් අනුපිටපත් ${dupsCount}ක් දත්ත සම්මිශ්‍රණ නල මාර්ගය (Canonical Pipeline) මගින් දැනටමත් ඉවත් කර අනන්‍ය වැඩසටහන් ${uniqueCount}ක් සුරක්ෂිත කර ඇත.</td></tr>`;
       } else {
         dups.forEach(d => {
           const tr = document.createElement("tr");
@@ -3367,7 +3737,10 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
   exportActivitiesCSV() {
     let csv = "ID,වැඩසටහන් නම,ග්‍රාම නිලධාරී වසම,ප්‍රජා සංවර්ධන සභාව,අංශය,දිනය,ස්ථානය,විස්තරය,කාර්යයන්,ප්‍රතිඵල,ප්‍රගතිය (%),ඡායාරූප ගණන\n";
     this.data.activities.forEach(a => {
-      csv += `"${a.id}","${a.titleSi}","${a.gnNameSi}","${a.sabhaNameSi}","${a.categoryNameSi}","${a.date}","${a.locationSi || ''}","${(a.purposeSi || '').replace(/"/g, '""')}","${(a.actionsSi || '').replace(/"/g, '""')}","${(a.resultsSi || '').replace(/"/g, '""')}",${a.progress},${a.images ? a.images.length : 0}\n`;
+      const purpose = (a.purposeSi || a.description || a.titleSi || "").replace(/"/g, '""');
+      const actions = (a.actionsSi || a.description || a.titleSi || "").replace(/"/g, '""');
+      const results = (a.resultsSi || "සාර්ථකව නිම කරන ලදී.").replace(/"/g, '""');
+      csv += `"${a.id}","${a.titleSi}","${a.gnNameSi}","${a.sabhaNameSi}","${a.categoryNameSi}","${a.date}","${a.locationSi || a.gnNameSi || ''}","${purpose}","${actions}","${results}",${a.progress ?? 100},${a.images ? a.images.length : 0}\n`;
     });
     this.downloadFile(csv, "Akmeemana_Praja_Sanwardhana_Sabha_Activities.csv", "text/csv;charset=utf-8;");
   }
@@ -3375,7 +3748,10 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
   exportGNDivisionsCSV() {
     let csv = "ග්‍රාම නිලධාරී වසම,ප්‍රජා සංවර්ධන සභාව,ප්‍රමුඛ ක්ෂේත්‍රය,මුළු වැඩසටහන්,සම්පූර්ණ වූ,ක්‍රියාත්මකයි,සත්‍යාපිත ඡායාරූප,ප්‍රගතිය (%)\n";
     this.data.gnDivisions.forEach(g => {
-      csv += `"${g.nameSi}","${g.sabhaNameSi}","${g.keySectorSi}",${g.totalProjects},${g.completed},${g.ongoing},${g.photoCount || 0},${g.progress}\n`;
+      const gComp = g.completed ?? g.completedCount ?? g.totalProjects ?? 0;
+      const gOng = g.ongoing ?? g.ongoingCount ?? 0;
+      const gProg = g.progress ?? g.progressPercentage ?? (g.totalProjects > 0 ? 100 : 0);
+      csv += `"${g.nameSi}","${g.sabhaNameSi}","${g.keySectorSi}",${g.totalProjects},${gComp},${gOng},${g.photoCount || 0},${gProg}\n`;
     });
     this.downloadFile(csv, "Akmeemana_63_GN_Divisions_Progress.csv", "text/csv;charset=utf-8;");
   }
@@ -3604,14 +3980,16 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     let activitiesRows = "";
     if (activities.length > 0) {
       activities.forEach((act, i) => {
+        const progVal = act.progress ?? 100;
+        const purpose = act.purposeSi || act.description || act.titleSi || "-";
         activitiesRows += `
           <tr>
             <td style="text-align: center; border: 1px solid #CCC; padding: 8px;">${i + 1}</td>
             <td style="border: 1px solid #CCC; padding: 8px; font-weight: 700;">${act.titleSi || act.title || act.description || "වැඩසටහන"}</td>
             <td style="border: 1px solid #CCC; padding: 8px;">${act.date}</td>
-            <td style="border: 1px solid #CCC; padding: 8px;">${act.purposeSi}</td>
+            <td style="border: 1px solid #CCC; padding: 8px;">${purpose}</td>
             <td style="border: 1px solid #CCC; padding: 8px; text-align: center;">${act.images ? act.images.length : 0}</td>
-            <td style="border: 1px solid #CCC; padding: 8px; text-align: center; font-weight: 700; color: #15803D;">${act.progress}%</td>
+            <td style="border: 1px solid #CCC; padding: 8px; text-align: center; font-weight: 700; color: #15803D;">${progVal}%</td>
           </tr>
         `;
       });
@@ -3750,12 +4128,12 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
 
         <div class="field-block">
           <div class="field-label">4. වැඩසටහනේ විස්තරය</div>
-          <div class="field-val">${act.purposeSi}</div>
+          <div class="field-val">${act.purposeSi || act.description || act.titleSi || "-"}</div>
         </div>
 
         <div class="field-block">
           <div class="field-label">5. සිදු කරන ලද කාර්යයන්</div>
-          <div class="field-val">${act.actionsSi}</div>
+          <div class="field-val">${act.actionsSi || act.description || act.titleSi || "-"}</div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
@@ -3765,13 +4143,13 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
                     </div>
           <div>
             <div class="field-label">8. ව්‍යාපෘතියේ ප්‍රගතිය</div>
-            <div class="field-val" style="font-weight: 800; color: #1D4ED8;">${act.progress}% (${act.statusLabelSi})</div>
+            <div class="field-val" style="font-weight: 800; color: #1D4ED8;">${act.progress ?? 100}% (${act.statusLabelSi || act.status || "සම්පූර්ණයි"})</div>
           </div>
         </div>
 
         <div class="field-block">
           <div class="field-label">7. ලබාගත් ප්‍රතිඵල</div>
-          <div class="field-val">${act.resultsSi}</div>
+          <div class="field-val">${act.resultsSi || "සාර්ථකව නිම කරන ලදී."}</div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
@@ -4048,6 +4426,7 @@ try { this.renderAnMonthlySubtab(e.target.value); } catch (e) { console.error(e)
   getFilteredAnalyticsData() {
     const f = this.analyticsFilters;
     const activities = (this.data.activities || []).filter(a => (f.year === "all" || String(a.date || "").startsWith(f.year) || String(a.year) === f.year) && (f.month === "all" || String(a.date || "").slice(0, 7) === f.month) && (f.gn === "all" || a.gnNameSi === f.gn || String(a.gnId) === f.gn) && (f.sector === "all" || a.category === f.sector)); 
+    const siMonthsMap = { "01": "ජනවාරි", "02": "පෙබරවාරි", "03": "මාර්තු", "04": "අප්‍රේල්", "05": "මැයි", "06": "ජූනි", "07": "ජූලි", "08": "අගෝස්තු", "09": "සැප්තැම්බර්", "10": "ඔක්තෝම්බර්", "11": "නොවැම්බර්", "12": "දෙසැම්බර්" };
     const _monthMap = {};
     activities.forEach(a => {
       const mk = String(a.date || "").slice(0, 7);
@@ -4057,11 +4436,34 @@ try { this.renderAnMonthlySubtab(e.target.value); } catch (e) { console.error(e)
       if (a.date) _monthMap[mk].days.add(a.date);
       const dk = a.gnId || a.gnNameSi || a.gnCode;
       if (dk) _monthMap[mk].divs.add(dk);
-      _monthMap[mk].photos += (a.images ? a.images.length : (a.photos || 0));
+      _monthMap[mk].photos += (Array.isArray(a.images) ? a.images.length : (Array.isArray(a.photos) ? a.photos.length : (a.photoCount || 0)));
     });
+    let _runCum = 0;
     const monthlyStats = Object.keys(_monthMap).sort().map(mk => {
       const _m = _monthMap[mk];
-      return { monthKey: _m.monthKey, year: _m.year, count: _m.count, activeDays: _m.days.size, activeDivisions: _m.divs.size, photos: _m.photos };
+      const [yStr, mStr] = mk.split("-");
+      const mSi = `${yStr} ${siMonthsMap[mStr] || mStr}`;
+      _runCum += _m.count;
+      return {
+        month: mk,
+        monthKey: _m.monthKey,
+        year: _m.year,
+        monthSi: mSi,
+        nameSi: mSi,
+        count: _m.count,
+        completed: _m.count,
+        ongoing: 0,
+        activeDays: _m.days.size,
+        activeDivisions: _m.divs.size,
+        reportingDivisions: _m.divs.size,
+        reportingGns: _m.divs.size,
+        divisions: _m.divs.size,
+        photos: _m.photos,
+        cumulative: _runCum,
+        cumulativeActivities: _runCum,
+        cumulativeTotal: _runCum,
+        cumulativeCount: _runCum
+      };
     });
     monthlyStats.forEach((m, idx) => { if (idx === 0) { m.mom = null; m.momChange = null; m.momChangePct = null; } else { const prev = monthlyStats[idx - 1].count || 0; const diff = (m.count || 0) - prev; const pct = prev > 0 ? Math.round((diff / prev) * 1000) / 10 : (m.count > 0 ? 100 : 0); m.mom = pct; m.momChange = diff; m.momChangePct = pct; } }); const months = monthlyStats;
 
@@ -4069,16 +4471,31 @@ try { this.renderAnMonthlySubtab(e.target.value); } catch (e) { console.error(e)
     activities.forEach(a => {
       const _k = a.gnId || a.gnNameSi || a.gnCode || "";
       if (!_k) return;
-      if (!_divMap[_k]) _divMap[_k] = { count: 0, days: new Set(), photos: 0 };
+      if (!_divMap[_k]) _divMap[_k] = { count: 0, days: new Set(), photos: 0, cats: new Set() };
       _divMap[_k].count++;
       if (a.date) _divMap[_k].days.add(a.date);
-      _divMap[_k].photos += (a.images ? a.images.length : (a.photos || 0));
+      if (a.category) _divMap[_k].cats.add(a.category);
+      _divMap[_k].photos += (Array.isArray(a.images) ? a.images.length : (Array.isArray(a.photos) ? a.photos.length : (a.photoCount || 0)));
     });
     let divisions = [...(this.data.gnDivisions || [])];
     if (f.gn !== "all") divisions = divisions.filter(d => d.nameSi === f.gn || String(d.id) === f.gn);
     divisions = divisions.map(d => {
-      const _s = _divMap[d.id] || _divMap[d.nameSi] || _divMap[d.code] || { count: 0, days: new Set(), photos: 0 };
-      return { ...d, totalProjects: _s.count, activeDays: _s.days.size, photos: _s.photos };
+      const _s = _divMap[d.nameSi] || _divMap[d.id] || _divMap[d.code] || { count: 0, days: new Set(), photos: 0, cats: new Set() };
+      return {
+        ...d,
+        totalProjects: _s.count,
+        activityCount: _s.count,
+        completed: _s.count,
+        completedCount: _s.count,
+        ongoing: 0,
+        ongoingCount: 0,
+        diversity: _s.cats.size,
+        activeDays: _s.days.size,
+        photos: _s.photos,
+        photoCount: _s.photos,
+        totalPhotos: _s.photos,
+        progress: _s.count > 0 ? 100 : 0
+      };
     });
     const reportedDivisions = divisions.filter(d => (d.totalProjects || 0) > 0);
     const topDivisions = [...reportedDivisions].sort((a, b) => (b.totalProjects || 0) - (a.totalProjects || 0));
@@ -4136,6 +4553,31 @@ try { this.renderAnDeepdiveSubtab(filtered); } catch (e) { console.error(e); }
     if (elAvgDiv) elAvgDiv.textContent = k.avgPerDiv;
     if (elAvgDay) elAvgDay.textContent = k.avgPerDay;
 
+    const elFooterTot = document.getElementById("anMomFooterTotal");
+    if (elFooterTot) elFooterTot.textContent = k.totalActs;
+
+    // Dynamic Executive Summary cards
+    const activeDivs = (filtered.divisions || []).filter(d => (d.totalProjects || 0) > 0);
+    const div3Plus = activeDivs.filter(d => (d.totalProjects || 0) >= 3).length;
+    const minActs = activeDivs.length ? Math.min(...activeDivs.map(d => d.totalProjects || 0)) : 0;
+    const div10Plus = activeDivs.filter(d => (d.totalProjects || 0) >= 10).length;
+    const top5Str = (filtered.topDivisions || []).slice(0, 5).map(d => `${d.nameSi} (${d.totalProjects})`).join(", ");
+
+    const covTxtEl = document.getElementById("anExecSummaryCovText");
+    if (covTxtEl) {
+      covTxtEl.textContent = `අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ ග්‍රාම නිලධාරී වසම් ${k.activeDivisionsCount}ක් වාර්තා කර ඇති අතර ඉන් වසම් ${div3Plus}ක් වැඩසටහන් 3ක් හෝ ඊට වැඩි ප්‍රමාණයක් පවත්වා ඇත (අවමය වැඩසටහන් ${minActs}).`;
+    }
+    const dailyTxtEl = document.getElementById("anExecSummaryDailyText");
+    if (dailyTxtEl) {
+      dailyTxtEl.textContent = `දින ${k.activeDays} ක් පුරා වැඩසටහන් ${k.totalActs} ක් පවත්වා ඇති අතර සාමාන්‍යයක් ලෙස එක් සක්‍රිය දිනයකදී වැඩසටහන් ${k.avgPerDay} ක් ක්‍රියාත්මක වී ඇත.`;
+    }
+    const topTxtEl = document.getElementById("anExecSummaryTopText");
+    if (topTxtEl) {
+      topTxtEl.textContent = top5Str
+        ? `${top5Str} ඇතුළු වසම් ${div10Plus} ක් වැඩසටහන් 10ක් හෝ ඊට වැඩි ප්‍රමාණයක් සම්පූර්ණ කර ඇත.`
+        : "තෝරාගත් පෙරහන සඳහා වසම් දත්ත නොමැත.";
+    }
+
     if (window.pssCharts) {
       window.pssCharts.renderAnCumulativeChart(filtered.months);
     }
@@ -4147,12 +4589,47 @@ try { this.renderAnDeepdiveSubtab(filtered); } catch (e) { console.error(e); }
     const notesEl = document.getElementById("anMonthDetailNotes");
     if (!tbody) return;
 
-    let months = this.data.monthlyStats || [];
+    const baseMonths = (filtered && Array.isArray(filtered.monthlyStats)) ? filtered.monthlyStats : (this.data.monthlyStats || []);
+    let months = baseMonths;
     if (selectedMonthKey && selectedMonthKey !== "all") {
-      months = months.filter(m => m.monthKey === selectedMonthKey);
-      if (notesEl) notesEl.innerHTML = `<span class="text-gold">තෝරාගත් මාසය: ${months[0]?.monthSi} (වැඩසටහන් ${months[0]?.count})</span>`;
+      months = baseMonths.filter(m => m.monthKey === selectedMonthKey);
+      if (notesEl) notesEl.innerHTML = `<span class="text-gold">තෝරාගත් මාසය: ${months[0]?.monthSi || ""} (වැඩසටහන් ${months[0]?.count || 0})</span>`;
     } else {
-      if (notesEl) notesEl.textContent = "සම්පූර්ණ මාස " + ((filtered && filtered.monthlyStats ? filtered.monthlyStats : months).length) + "ක සංඛ්‍යාලේඛන පහත දැක්වේ";
+      if (notesEl) notesEl.textContent = "සම්පූර්ණ මාස " + baseMonths.length + "ක සංඛ්‍යාලේඛන පහත දැක්වේ";
+    }
+
+    // Dynamic update for the 4 Monthly highlight cards
+    if (baseMonths.length > 0) {
+      const siMonthsFull = {
+        '01': 'ජනවාරි', '02': 'පෙබරවාරි', '03': 'මාර්තු', '04': 'අප්‍රේල්',
+        '05': 'මැයි', '06': 'ජූනි', '07': 'ජූලි', '08': 'අගෝස්තු',
+        '09': 'සැප්තැම්බර්', '10': 'ඔක්තෝම්බර්', '11': 'නොවැම්බර්', '12': 'දෙසැම්බර්'
+      };
+      const fmtMTitle = (mObj) => {
+        const [yr = '', mn = ''] = String(mObj.monthKey || '').split('-');
+        return `${siMonthsFull[mn] || mObj.sinhalaMonth || mn} ${yr}`.trim();
+      };
+      const peakM = [...baseMonths].sort((a, b) => (b.count || 0) - (a.count || 0))[0];
+      const lowM = [...baseMonths].sort((a, b) => (a.count || 0) - (b.count || 0))[0];
+      const totM = baseMonths.reduce((s, m) => s + (m.count || 0), 0);
+      const avgM = (totM / baseMonths.length).toFixed(1);
+      const lastM = baseMonths[baseMonths.length - 1];
+      const prevM2 = baseMonths.length >= 2 ? baseMonths[baseMonths.length - 2] : null;
+      const setT = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+      setT('anMonthlyPeakTitle', fmtMTitle(peakM));
+      setT('anMonthlyPeakMeta', `වැඩසටහන් ${peakM.count} ක් (දින ${peakM.activeDays || 0}ක් තුළ)`);
+      setT('anMonthlyLowTitle', fmtMTitle(lowM));
+      setT('anMonthlyLowMeta', `වැඩසටහන් ${lowM.count} ක් (අඩුම මාසය)`);
+      setT('anMonthlyAvgVal', `මසකට ${avgM}`);
+      setT('anMonthlyCurrVal', `වැඩසටහන් ${lastM.count}`);
+      if (prevM2) {
+        const prevName = (siMonthsFull[String(prevM2.monthKey || '').split('-')[1]] || prevM2.monthSi || '');
+        const pctDiff = prevM2.count > 0 ? (((lastM.count - prevM2.count) / prevM2.count) * 100).toFixed(1) : '0.0';
+        const sign = Number(pctDiff) > 0 ? '+' : '';
+        setT('anMonthlyCurrMom', `MoM: ${sign}${pctDiff}% (${prevName} ${prevM2.count} සිට)`);
+      } else {
+        setT('anMonthlyCurrMom', `වාර්තා කළ මාස 1`);
+      }
     }
 
     tbody.innerHTML = "";
@@ -4163,10 +4640,10 @@ try { this.renderAnDeepdiveSubtab(filtered); } catch (e) { console.error(e); }
           ? `<span class="badge" style="background: rgba(16,185,129,0.2); color: #6EE7B7; font-weight:700;">+${m.momChangePct}%</span>`
           : `<span class="badge" style="background: rgba(239,68,68,0.2); color: #F87171; font-weight:700;">${m.momChangePct}%</span>`);
 
-      const _allM = (filtered && filtered.monthlyStats ? filtered.monthlyStats : (this.data.monthlyStats || [])); const _maxC = _allM.length ? Math.max(..._allM.map(x => x.count || 0)) : 0; const _lastK = _allM.length ? _allM[_allM.length - 1].monthKey : null; const isAug = _maxC > 0 && (m.count || 0) === _maxC;
+      const _allM = baseMonths; const _maxC = _allM.length ? Math.max(..._allM.map(x => x.count || 0)) : 0; const _lastK = _allM.length ? _allM[_allM.length - 1].monthKey : null; const isAug = _maxC > 0 && (m.count || 0) === _maxC;
       const isSep = m.monthKey === _lastK;
       const rowStyle = isAug ? "background: rgba(212, 175, 55, 0.08);" : (isSep ? "background: rgba(56, 189, 248, 0.06);" : "");
-      const reportedGns = m.reportingDivisions || m.reportingGns || 0;
+      const reportedGns = m.reportingDivisions || m.reportingGns || m.activeDivisions || 0;
       const coveragePct = ((reportedGns / 63) * 100).toFixed(1) + '%';
       
       tbody.innerHTML += `
@@ -4178,7 +4655,7 @@ try { this.renderAnDeepdiveSubtab(filtered); } catch (e) { console.error(e); }
           </td>
           <td style="text-align: center; font-weight: 800; font-size: 1.05rem;" class="${isAug ? 'gold-text-gradient' : 'text-gold'}">${m.count || m.completed || 0}</td>
           <td style="text-align: center; font-weight: 600; color: #38BDF8;">${m.activeDays || 0} දින</td>
-          <td style="text-align: center; font-weight: 600; color: #FDE68A;">${m.reportingDivisions || m.reportingGns || 0}</td>
+          <td style="text-align: center; font-weight: 600; color: #FDE68A;">${reportedGns}</td>
           <td style="text-align: center;">${momBadge}</td>
           <td style="text-align: center; font-weight: 700; color: #FFF;">${m.cumulativeActivities || m.cumulativeTotal || 0}</td>
           <td style="text-align: center;">
@@ -4189,10 +4666,10 @@ try { this.renderAnDeepdiveSubtab(filtered); } catch (e) { console.error(e); }
     });
 
     if (window.pssCharts) {
-      window.pssCharts.renderAnMonthlyTrendChart(this.data.monthlyStats);
+      window.pssCharts.renderAnMonthlyTrendChart(baseMonths);
     }
 try {
-      const monthlyData = (filtered && filtered.monthlyStats && filtered.monthlyStats.length) ? filtered.monthlyStats : (this.data.monthlyStats || []);
+      const monthlyData = baseMonths;
       if (monthlyData.length >= 2) {
         const siMonths = {
           '01': 'ජනවාරි', '02': 'පෙබරවාරි', '03': 'මාර්තු', '04': 'අප්‍රේල්',
@@ -4207,12 +4684,16 @@ try {
         const currMonthNameOnly = siMonths[currMon] || (currM.monthSi ? String(currM.monthSi).split(' ')[0] : currMon);
         const prevCount = Number(prevM.count ?? prevM.completed ?? 0);
         const currCount = Number(currM.count ?? currM.completed ?? 0);
+        const prevDivs = prevM.reportingDivisions || prevM.reportingGns || prevM.activeDivisions || 0;
+        const currDivs = currM.reportingDivisions || currM.reportingGns || currM.activeDivisions || 0;
         const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
         setTxt('anMomCompareHeading', `${prevMonthNameOnly} හා සැසඳීම`);
         setTxt('anMomPrevLabel', `${prevMonthNameOnly} ${prevYear} (පෙර මාසය)`);
         setTxt('anMomPrevCount', `වැඩසටහන් ${prevCount}`);
+        setTxt('anMomPrevMeta', `වසම් ${prevDivs} ක් වාර්තා කළේය (දින ${prevM.activeDays || 0}ක් සක්‍රියයි)`);
         setTxt('anMomCurrLabel', `${currMonthNameOnly} ${currYear} (වත්මන් මාසය)`);
         setTxt('anMomCurrCount', `වැඩසටහන් ${currCount}`);
+        setTxt('anMomCurrMeta', `වසම් ${currDivs} ක් වාර්තා කළේය (දින ${currM.activeDays || 0}ක් සක්‍රියයි)`);
         const pct = prevCount > 0 ? ((currCount - prevCount) / prevCount) * 100 : 0;
         const boxEl = document.getElementById('anMomBox');
         const subEl = document.getElementById('anMomSublabel');
@@ -4252,7 +4733,8 @@ try {
       const pctStr = activeDivs >= totalGn ? "100%" : (filtered.kpis.coveragePct || `${((activeDivs / totalGn) * 100).toFixed(1)}%`);
       covEl.innerHTML = activeDivs >= totalGn ? `<i class="bi bi-check-circle-fill"></i> සියලු වසම් ${totalGn}ම සම්පූර්ණ ආවරණය (100% Complete)` : `<i class="bi bi-check-circle-fill"></i> වසම් ${activeDivs} / ${totalGn} ආවරණය (${pctStr} Complete)`;
     }
-    let divs = [...(this.data.gnDivisions || [])];
+    let divs = [...((filtered && Array.isArray(filtered.divisions)) ? filtered.divisions : (this.data.gnDivisions || []))];
+    const chartDivs = [...divs];
 
     // Search filter
     if (this.anDivSearchTerm) {
@@ -4263,7 +4745,7 @@ try {
     if (this.anDivFilter === "top10") {
       divs = [...divs].sort((a, b) => b.totalProjects - a.totalProjects).slice(0, 10);
     } else if (this.anDivFilter === "completed100") {
-      divs = divs.filter(d => d.ongoing === 0);
+      divs = divs.filter(d => (d.ongoing || 0) === 0 && (d.totalProjects || 0) > 0);
     } else if (this.anDivFilter === "low") {
       divs = divs.filter(d => d.totalProjects <= 4);
     }
@@ -4283,13 +4765,17 @@ try {
         ? `<span class="badge" style="background: rgba(212,175,55,0.25); color: #FDE68A; font-weight: 800; font-size: 0.85rem; padding: 0.25rem 0.55rem; border-radius: 999px; border: 1px solid #D4AF37;">#${idx + 1}</span>`
         : `<span style="color: #94A3B8; font-weight: 600;">#${idx + 1}</span>`;
 
-      const diversityStars = d.diversity >= 7
-        ? `<span class="badge" style="background: rgba(16,185,129,0.2); color: #6EE7B7; font-weight:700;">${d.diversity}/10 (ඉහළම)</span>`
-        : (d.diversity >= 5
-          ? `<span class="badge" style="background: rgba(59,130,246,0.2); color: #93C5FD; font-weight:600;">${d.diversity}/10</span>`
-          : `<span class="badge" style="background: rgba(245,158,11,0.2); color: #FCD34D;">${d.diversity}/10</span>`);
+      const divScore = d.diversity ?? 0;
+      const diversityStars = divScore >= 7
+        ? `<span class="badge" style="background: rgba(16,185,129,0.2); color: #6EE7B7; font-weight:700;">${divScore}/10 (ඉහළම)</span>`
+        : (divScore >= 5
+          ? `<span class="badge" style="background: rgba(59,130,246,0.2); color: #93C5FD; font-weight:600;">${divScore}/10</span>`
+          : `<span class="badge" style="background: rgba(245,158,11,0.2); color: #FCD34D;">${divScore}/10</span>`);
 
-      const statusBadge = d.ongoing === 0
+      const completedCount = d.completed ?? d.completedCount ?? d.totalProjects ?? 0;
+      const ongoingCount = d.ongoing ?? d.ongoingCount ?? 0;
+      const progPct = d.progress ?? d.progressPercentage ?? (d.totalProjects > 0 ? 100 : 0);
+      const statusBadge = ongoingCount === 0 && (d.totalProjects || 0) > 0
         ? '<span class="glass-badge green" style="font-size:0.75rem;"><i class="bi bi-check2-circle"></i> 100% සම්පූර්ණයි</span>'
         : '<span class="glass-badge blue" style="font-size:0.75rem;"><i class="bi bi-hourglass-split"></i> ක්‍රියාත්මකයි</span>';
 
@@ -4298,20 +4784,23 @@ try {
           <td style="text-align: center;">${rankBadge}</td>
           <td>
             <strong style="color: #FFF; font-size: 0.95rem;">${d.nameSi}</strong>
-            <div style="font-size: 0.74rem; color: #94A3B8;">${d.sabhaNameSi}</div>
+            <div style="font-size: 0.74rem; color: #94A3B8;">${d.sabhaNameSi || `${d.nameSi} ප්‍රජා සංවර්ධන සභාව`}</div>
           </td>
-          <td><span class="glass-badge blue" style="font-size: 0.74rem;">${d.keySectorSi}</span></td>
+          <td><span class="glass-badge blue" style="font-size: 0.74rem;">${d.keySectorSi || "ප්‍රජා සංවර්ධන"}</span></td>
           <td style="text-align: center; font-weight: 800; font-size: 1.1rem; color: #10B981;">${d.totalProjects}</td>
+          <td style="text-align: center; font-weight: 700; color: #6EE7B7;">${completedCount}</td>
+          <td style="text-align: center; font-weight: 600; color: #94A3B8;">${ongoingCount}</td>
           <td style="text-align: center;">${diversityStars}</td>
           <td style="text-align: center; font-weight: 600; color: #38BDF8;">${d.activeDays || 0} දින</td>
-          <td style="text-align: center; font-weight: 600; color: #FDE68A;"><i class="bi bi-images"></i> ${d.totalPhotos || 0}</td>
+          <td style="text-align: center; font-weight: 600; color: #FDE68A;"><i class="bi bi-images"></i> ${d.totalPhotos ?? d.photoCount ?? 0}</td>
+          <td style="text-align: center; font-weight: 700; color: #34D399;">${progPct}%</td>
           <td style="text-align: center;">${statusBadge}</td>
         </tr>
       `;
     });
 
     if (window.pssCharts) {
-      window.pssCharts.renderAnTopDivisionsChart(this.data.gnDivisions);
+      window.pssCharts.renderAnTopDivisionsChart(chartDivs);
     }
   }
 
@@ -4380,13 +4869,13 @@ try {
     const acts = (filtered && Array.isArray(filtered.activities)) ? filtered.activities : (this.data.activities || []);
     const dayNamesSi = ["ඉරිදා", "සඳුදා", "අඟහරුවාදා", "බදාදා", "බ්‍රහස්පතින්දා", "සිකුරාදා", "සෙනසුරාදා"];
     const weekdaysList = [
-      { day: "සඳුදා", count: 0, color: "#38BDF8" },
-      { day: "අඟහරුවාදා", count: 0, color: "#38BDF8" },
-      { day: "බදාදා", count: 0, color: "#38BDF8" },
-      { day: "බ්‍රහස්පතින්දා", count: 0, color: "#38BDF8" },
-      { day: "සිකුරාදා", count: 0, color: "#38BDF8" },
-      { day: "සෙනසුරාදා", count: 0, color: "#F59E0B" },
-      { day: "ඉරිදා", count: 0, color: "#EF4444" }
+      { dayIndex: 1, day: "සඳුදා", daySi: "සඳුදා", isWeekend: false, count: 0, color: "#3B82F6" },
+      { dayIndex: 2, day: "අඟහරුවාදා", daySi: "අඟහරුවාදා", isWeekend: false, count: 0, color: "#8B5CF6" },
+      { dayIndex: 3, day: "බදාදා", daySi: "බදාදා", isWeekend: false, count: 0, color: "#0D9488" },
+      { dayIndex: 4, day: "බ්‍රහස්පතින්දා", daySi: "බ්‍රහස්පතින්දා", isWeekend: false, count: 0, color: "#10B981" },
+      { dayIndex: 5, day: "සිකුරාදා", daySi: "සිකුරාදා", isWeekend: false, count: 0, color: "#06B6D4" },
+      { dayIndex: 6, day: "සෙනසුරාදා", daySi: "සෙනසුරාදා", isWeekend: true, count: 0, color: "#F59E0B" },
+      { dayIndex: 0, day: "ඉරිදා", daySi: "ඉරිදා", isWeekend: true, count: 0, color: "#EF4444" }
     ];
     const dayToIdx = [6, 0, 1, 2, 3, 4, 5];
     const dateMap = {};
@@ -4509,10 +4998,6 @@ try {
       });
       html += '</div>';
       heatmapWrap.innerHTML = html;
-    }
-
-    if (window.pssCharts) {
-      window.pssCharts.renderAnTimelineCharts(this.data?.analytics?.weekdays);
     }
   }
 
@@ -4798,11 +5283,11 @@ const acts = (filtered && Array.isArray(filtered.activities)) ? filtered.activit
       if (Array.isArray(a.photos)) totalPhotos += a.photos.length;
     });
     const elCompleted = document.getElementById("anDeepdiveCompletedText");
-    if (elCompleted) elCompleted.textContent = `${acts.length} / ${acts.length}`;
+    if (elCompleted) elCompleted.textContent = `වැඩසටහන් ${acts.length} ම ක්ෂේත්‍ර මට්ටමින් සම්පූර්ණයි`;
     const elDays = document.getElementById("anDeepdiveActiveDays");
-    if (elDays) elDays.textContent = activeDaysSet.size;
+    if (elDays) elDays.textContent = `${activeDaysSet.size} දින`;
     const elPhotos = document.getElementById("anDeepdivePhotos");
-    if (elPhotos) elPhotos.textContent = totalPhotos;
+    if (elPhotos) elPhotos.textContent = totalPhotos.toLocaleString();
   }
 }
 

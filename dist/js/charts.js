@@ -365,9 +365,20 @@ class PssCharts {
     const data = monthlyData || this.data?.monthlyStats || this.data?.monthlySummary || [];
     if (!data.length) return;
 
-    const labels = data.map(m => m.nameSi ? m.nameSi.replace(" මාසික වාර්තාව", "") : (m.monthSi || m.month));
+  const _siM = { "01": "ජනවාරි", "02": "පෙබරවාරි", "03": "මාර්තු", "04": "අප්‍රේල්", "05": "මැයි", "06": "ජූනි", "07": "ජූලි", "08": "අගෝස්තු", "09": "සැප්තැම්බර්", "10": "ඔක්තෝම්බර්", "11": "නොවැම්බර්", "12": "දෙසැම්බර්" };
+    const labels = data.map(m => {
+      if (m.nameSi) return m.nameSi.replace(" මාසික වාර්තාව", "");
+      if (m.monthSi) return m.monthSi;
+      const mk = String(m.monthKey || m.month || "");
+      const p = mk.split("-");
+      return p.length === 2 ? `${p[0]} ${_siM[p[1]] || p[1]}` : mk;
+    });
     const monthlyCounts = data.map(m => m.count || m.totalProjects || 0);
-    const cumulativeCounts = data.map(m => m.cumulativeCount || m.cumulativeTotal || 0);
+    let _runCum = 0;
+    const cumulativeCounts = data.map((m, i) => {
+      _runCum += monthlyCounts[i];
+      return m.cumulativeCount || m.cumulativeTotal || m.cumulative || _runCum;
+    });
 
     const barGrad = this.getVerticalGrad(ctx, "rgba(79, 70, 229, 0.85)", "rgba(37, 99, 235, 0.5)", 340);
     const lineGrad = this.getVerticalGrad(ctx, "rgba(217, 119, 6, 0.35)", "rgba(217, 119, 6, 0.02)", 340);
@@ -447,7 +458,14 @@ class PssCharts {
     const data = monthlyData || this.data?.monthlyStats || this.data?.monthlySummary || [];
     if (!data.length) return;
 
-    const labels = data.map(m => m.nameSi ? m.nameSi.replace(" මාසික වාර්තාව", "") : (m.monthSi || m.month));
+    const _siM2 = { "01": "ජනවාරි", "02": "පෙබරවාරි", "03": "මාර්තු", "04": "අප්‍රේල්", "05": "මැයි", "06": "ජූනි", "07": "ජූලි", "08": "අගෝස්තු", "09": "සැප්තැම්බර්", "10": "ඔක්තෝම්බර්", "11": "නොවැම්බර්", "12": "දෙසැම්බර්" };
+    const labels = data.map(m => {
+      if (m.nameSi) return m.nameSi.replace(" මාසික වාර්තාව", "");
+      if (m.monthSi) return m.monthSi;
+      const mk = String(m.monthKey || m.month || "");
+      const p = mk.split("-");
+      return p.length === 2 ? `${p[0]} ${_siM2[p[1]] || p[1]}` : mk;
+    });
     const counts = data.map(m => m.count || m.totalProjects || 0);
 
     // Calculate real MoM pct
@@ -670,9 +688,11 @@ class PssCharts {
   /**
    * 8. Analytics: Weekday & Weekend Analysis Charts
    */
-  renderAnTimelineCharts() {
+  renderAnTimelineCharts(weekdaysArg = null) {
     if (typeof Chart === "undefined") { console.warn("Chart.js not loaded. Skipping renderAnTimelineCharts"); return; }
-    const rawActs = this.data?.activities || [];
+ let daysList;
+    if (Array.isArray(weekdaysArg) && weekdaysArg.length === 7) daysList = weekdaysArg; else {
+      const rawActs = this.data?.activities || [];
     const weekdayMap = {
       0: { daySi: "ඉරිදා", count: 0, isWeekend: true, color: "#EA580C" },
       1: { daySi: "සඳුදා", count: 0, isWeekend: false, color: "#2563EB" },
@@ -685,13 +705,12 @@ class PssCharts {
 
     rawActs.forEach(a => {
       try {
-        const d = new Date(a.date);
-        const dayIdx = d.getDay();
+      const parts = String(a.date || "").trim().slice(0, 10).split(/[-/]/); const [yy, mm, dd] = parts.map(Number); const dayIdx = (parts.length === 3 && parts[0].length === 4 && !isNaN(yy) && !isNaN(mm) && !isNaN(dd)) ? new Date(Date.UTC(yy, mm - 1, dd)).getUTCDay() : new Date(a.date).getUTCDay();;
         if (weekdayMap[dayIdx]) weekdayMap[dayIdx].count++;
       } catch {}
     });
 
-    const daysList = [weekdayMap[1], weekdayMap[2], weekdayMap[3], weekdayMap[4], weekdayMap[5], weekdayMap[6], weekdayMap[0]];
+     daysList = [weekdayMap[1], weekdayMap[2], weekdayMap[3], weekdayMap[4], weekdayMap[5], weekdayMap[6], weekdayMap[0]];}
     const weekdaysTotal = daysList.filter(d => !d.isWeekend).reduce((acc, d) => acc + d.count, 0);
     const weekendsTotal = daysList.filter(d => d.isWeekend).reduce((acc, d) => acc + d.count, 0);
     const grandTotal = Math.max(1, weekdaysTotal + weekendsTotal);
@@ -785,9 +804,20 @@ class PssCharts {
       "3 - 4 ක්ෂේත්‍ර (සාමාන්‍ය)": 0,
       "1 - 2 ක්ෂේත්‍ර (අවධානය)": 0
     };
-
+    const acts = this.data?.activities || [];
+    const divCatMap = {};
+    acts.forEach(a => {
+      const name = a.gnNameSi || a.gnDivision || a.gnName || "";
+      if (!name) return;
+      if (!divCatMap[name]) divCatMap[name] = new Set();
+      if (a.category) divCatMap[name].add(a.category);
+      });
+    
     data.forEach(d => {
-      const v = d.diversity || 4;
+      const name = d.nameSi || d.name || "";
+      const v = (typeof d.diversity === "number" && d.diversity > 0)
+          ? d.diversity
+        : (divCatMap[name] ? divCatMap[name].size : 0);
       if (v >= 7) tiers["7+ ක්ෂේත්‍ර (ඉහළම)"]++;
       else if (v >= 5) tiers["5 - 6 ක්ෂේත්‍ර (මධ්‍යස්ථ)"]++;
       else if (v >= 3) tiers["3 - 4 ක්ෂේත්‍ර (සාමාන්‍ය)"]++;

@@ -1,9 +1,8 @@
 {
-  "version": "10.0",
-  "updated": "2026-11-19 20:39:31",
-  "activities": 494,
-  "gns": 63,
-  "photos": 1613,
-  "duplicates": 75,
-  "raw_slots": 569
+  "version": "2026-11-25T20:45:00+05:30",
+  "totalActivities": 488,
+  "totalPhotos": 1613,
+  "activeDays": 206,
+  "duplicatesMerged": 81,
+  "rawSlotsHarvested": 569
 }
