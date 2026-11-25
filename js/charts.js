@@ -365,9 +365,20 @@ class PssCharts {
     const data = monthlyData || this.data?.monthlyStats || this.data?.monthlySummary || [];
     if (!data.length) return;
 
-    const labels = data.map(m => m.nameSi ? m.nameSi.replace(" මාසික වාර්තාව", "") : (m.monthSi || m.month));
+  const _siM = { "01": "ජනවාරි", "02": "පෙබරවාරි", "03": "මාර්තු", "04": "අප්‍රේල්", "05": "මැයි", "06": "ජූනි", "07": "ජූලි", "08": "අගෝස්තු", "09": "සැප්තැම්බර්", "10": "ඔක්තෝම්බර්", "11": "නොවැම්බර්", "12": "දෙසැම්බර්" };
+    const labels = data.map(m => {
+      if (m.nameSi) return m.nameSi.replace(" මාසික වාර්තාව", "");
+      if (m.monthSi) return m.monthSi;
+      const mk = String(m.monthKey || m.month || "");
+      const p = mk.split("-");
+      return p.length === 2 ? `${p[0]} ${_siM[p[1]] || p[1]}` : mk;
+    });
     const monthlyCounts = data.map(m => m.count || m.totalProjects || 0);
-    const cumulativeCounts = data.map(m => m.cumulativeCount || m.cumulativeTotal || 0);
+    let _runCum = 0;
+    const cumulativeCounts = data.map((m, i) => {
+      _runCum += monthlyCounts[i];
+      return m.cumulativeCount || m.cumulativeTotal || m.cumulative || _runCum;
+    });
 
     const barGrad = this.getVerticalGrad(ctx, "rgba(79, 70, 229, 0.85)", "rgba(37, 99, 235, 0.5)", 340);
     const lineGrad = this.getVerticalGrad(ctx, "rgba(217, 119, 6, 0.35)", "rgba(217, 119, 6, 0.02)", 340);
@@ -447,7 +458,14 @@ class PssCharts {
     const data = monthlyData || this.data?.monthlyStats || this.data?.monthlySummary || [];
     if (!data.length) return;
 
-    const labels = data.map(m => m.nameSi ? m.nameSi.replace(" මාසික වාර්තාව", "") : (m.monthSi || m.month));
+    const _siM2 = { "01": "ජනවාරි", "02": "පෙබරවාරි", "03": "මාර්තු", "04": "අප්‍රේල්", "05": "මැයි", "06": "ජූනි", "07": "ජූලි", "08": "අගෝස්තු", "09": "සැප්තැම්බර්", "10": "ඔක්තෝම්බර්", "11": "නොවැම්බර්", "12": "දෙසැම්බර්" };
+    const labels = data.map(m => {
+      if (m.nameSi) return m.nameSi.replace(" මාසික වාර්තාව", "");
+      if (m.monthSi) return m.monthSi;
+      const mk = String(m.monthKey || m.month || "");
+      const p = mk.split("-");
+      return p.length === 2 ? `${p[0]} ${_siM2[p[1]] || p[1]}` : mk;
+    });
     const counts = data.map(m => m.count || m.totalProjects || 0);
 
     // Calculate real MoM pct
