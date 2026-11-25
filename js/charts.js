@@ -786,9 +786,20 @@ class PssCharts {
       "3 - 4 ක්ෂේත්‍ර (සාමාන්‍ය)": 0,
       "1 - 2 ක්ෂේත්‍ර (අවධානය)": 0
     };
-
+    const acts = this.data?.activities || [];
+    const divCatMap = {};
+    acts.forEach(a => {
+      const name = a.gnNameSi || a.gnDivision || a.gnName || "";
+      if (!name) return;
+      if (!divCatMap[name]) divCatMap[name] = new Set();
+      if (a.category) divCatMap[name].add(a.category);
+      });
+    
     data.forEach(d => {
-      const v = d.diversity || 4;
+      const name = d.nameSi || d.name || "";
+      const v = (typeof d.diversity === "number" && d.diversity > 0)
+          ? d.diversity
+        : (divCatMap[name] ? divCatMap[name].size : 0);
       if (v >= 7) tiers["7+ ක්ෂේත්‍ර (ඉහළම)"]++;
       else if (v >= 5) tiers["5 - 6 ක්ෂේත්‍ර (මධ්‍යස්ථ)"]++;
       else if (v >= 3) tiers["3 - 4 ක්ෂේත්‍ර (සාමාන්‍ය)"]++;
