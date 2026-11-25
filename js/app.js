@@ -1031,7 +1031,7 @@ class PssApp {
           
           <!-- Activity description/purpose alongside photograph -->
           <div style="font-size: 0.78rem; color: #FDE68A; margin-bottom: 0.25rem;">
-            <i class="bi bi-bullseye"></i> වැඩසටහනේ අරමුණ හා විස්තරය:
+            <i class="bi bi-bullseye"></i> වැඩසටහනේ විස්තරය හා විස්තරය:
           </div>
           <p class="gallery-card-desc">${item.captionSi || item.titleSi}</p>
 
@@ -1214,31 +1214,10 @@ class PssApp {
   }
 
 renderOverviewTab() { this.renderLatestMonthProgress(); }
-renderLatestMonthProgress() { const container = document.getElementById("latestMonthProgressContainer") || document.getElementById("overviewRecentList"); if (!container) return; const acts = this.data.activities || []; const mSet = new Set(); acts.forEach(a => { const d = (a.date || "").trim(); if (/^\d{4}-\d{2}/.test(d)) mSet.add(d.slice(0, 7)); }); const months = Array.from(mSet).sort(); const latestKey = months.length ? months[months.length - 1] : null; if (!latestKey) { container.innerHTML = '<div style="color:#94A3B8;text-align:center;padding:1.5rem;">නවතම මාසයේ දත්ත හමු නොවීය...</div>'; return; } const siM = {"01":"ජනවාරි","02":"පෙබරවාරි","03":"මාර්තු","04":"අප්‍රේල්","05":"මැයි","06":"ජූනි","07":"ජූලි","08":"අගෝස්තු","09":"සැප්තැම්බර්","10":"ඔක්තෝම්බර්","11":"නොවැම්බර්","12":"දෙසැම්බර්"}; const parts = latestKey.split("-"); const monthLabel = parts[0] + " " + (siM[parts[1]] || parts[1]); const dynamicTabLabel = monthLabel + " ප්‍රගතිය"; if (this.tabTitles) this.tabTitles["latest-month"] = dynamicTabLabel; const sideLatestEl = document.getElementById("sideLatestMonthLabel"); if (sideLatestEl) sideLatestEl.textContent = "2. " + dynamicTabLabel; if (this.currentTab === "latest-month") { const topTitleEl = document.getElementById("currentViewTitle"); if (topTitleEl) topTitleEl.textContent = dynamicTabLabel; } const mActs = acts.filter(a => (a.date || "").trim().startsWith(latestKey)); const gnCounts = {}; const secCounts = {}; let photoCount = 0; mActs.forEach(a => { const gn = a.gnNameSi || a.gnDivision || "වෙනත්"; gnCounts[gn] = (gnCounts[gn] || 0) + 1; const sec = a.sectorSi || a.sector || a.categorySi || a.category || "වෙනත්"; secCounts[sec] = (secCounts[sec] || 0) + 1; if (Array.isArray(a.images)) photoCount += a.images.length; else if (Array.isArray(a.photos)) photoCount += a.photos.length; }); const actCount = mActs.length; const daysCount = this.getUniqueActiveDays(mActs); const gnCount = Object.keys(gnCounts).length; const sortedSec = Object.entries(secCounts).sort((a, b) => b[1] - a[1]); const sortedGn = Object.entries(gnCounts).sort((a, b) => b[1] - a[1]); const sortedActs = mActs.slice().sort((a, b) => (b.date || "").localeCompare(a.date || "")); const secHtml = sortedSec.map(([s, c]) => '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;"><span style="color:#FFFFFF;font-weight:600;">' + s + '</span><span class="glass-badge blue" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + c + '</span></div>').join(""); const activeGn = this.selectedLatestMonthDivision || null; const resetBtnHtml = '<button type="button" class="latest-gn-filter-btn" data-gn-filter="__ALL__" style="cursor:pointer;background:' + (!activeGn ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.06)') + ';border:1px solid ' + (!activeGn ? '#38BDF8' : 'rgba(255,255,255,0.12)') + ';padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;color:#FFFFFF;font-weight:600;">සියලුම වසම් <span class="glass-badge blue" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + actCount + '</span></button>'; const gnHtml = resetBtnHtml + sortedGn.map(([g, c]) => { const isSel = activeGn === g; return '<button type="button" class="latest-gn-filter-btn" data-gn-filter="' + String(g).replace(/"/g, '&quot;') + '" style="cursor:pointer;background:' + (isSel ? 'rgba(16,185,129,0.22)' : 'rgba(255,255,255,0.04)') + ';border:1px solid ' + (isSel ? '#10B981' : 'rgba(255,255,255,0.08)') + ';padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;"><span style="color:#FFFFFF;font-weight:600;">' + g + '</span><span class="glass-badge green" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + c + '</span></button>'; }).join(""); const filteredActs = activeGn ? sortedActs.filter(a => (a.gnNameSi || a.gnDivision || "වෙනත්") === activeGn) : sortedActs; const actLightboxMap = []; const listHtml = filteredActs.map((a, idx) => { const rawP = a.photoObjects || a.photos || a.images || a.photoUrls || []; const photos = rawP.map((p, i) => { const u = this.resolveDriveImageUrl(p); return u ? { id: (p && typeof p === "object" && p.id) ? p.id : `${a.id || idx}-p${i}`, thumbnail: u, full: u, url: u, caption: a.titleSi || a.title || "", date: a.date || "", gn: a.gnNameSi || a.gnDivision || "" } : null; }).filter(Boolean); actLightboxMap[idx] = photos; const titleText = this.buildBlogHeadline(a); const descText = this.cleanSinhalaText([a.fullDescription, a.description, a.details, a.rawDescription, a.narrative, a.summary, a.actionsSi, a.titleSi, a.title].map((v) => this.cleanSinhalaText(v || "")).filter(Boolean).sort((x, y) => y.length - x.length)[0] || ""); const secText = this.cleanSinhalaText(a.categoryNameSi || a.sectorSi || a.sector || a.categorySi || "-"); const siDate = this.formatSinhalaDate(a.date || ""); const ribbonHtml = `<div class="news-blog-ribbon" style="background:linear-gradient(90deg,#0f294a,#1e3a8a);color:#ffffff;padding:0.45rem 0.85rem;border-radius:8px;font-size:0.8rem;font-weight:600;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;"><span><i class="bi bi-tag-fill"></i> ${secText}</span><span><i class="bi bi-calendar3"></i> ${siDate || (a.date || "")}</span><span><i class="bi bi-images"></i> ${photos.length} \u0DA1\u0DCF\u0DBA\u0DCF\u0DBB\u0DD6\u0DB4</span></div>`; const collageHtml = this.buildPhotoCollageHTML(photos, titleText); return `<div class="editorial-activity-card" data-latest-act-idx="${idx}">${ribbonHtml}<h3 class="editorial-card-title">${titleText}</h3>${collageHtml}<p class="editorial-card-description">${descText}</p><div class="editorial-card-meta"><span class="editorial-meta-badge division-pill"><i class="bi bi-geo-alt-fill"></i> ${a.gnNameSi || a.gnDivision || "-"}</span><span class="editorial-meta-badge date-pill"><i class="bi bi-calendar3"></i> ${a.date || ""}</span><span class="editorial-meta-badge sector-pill"><i class="bi bi-tag-fill"></i> ${a.categoryNameSi || a.sectorSi || a.sector || a.categorySi || "-"}</span>${(a.officerNameSi || a.officerName || a.officerSi || a.officer) ? `<span class="editorial-meta-badge officer-pill"><i class="bi bi-person-fill"></i> ${a.officerNameSi || a.officerName || a.officerSi || a.officer}</span>` : ""}</div></div>`; }).join(""); container.innerHTML = '<div style="background:rgba(15,23,44,0.7);border-radius:14px;padding:1.2rem;border:1px solid rgba(255,255,255,0.08);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;"><div><span style="font-size:0.8rem;color:#94A3B8;">නවතම සක්‍රීය මාසයේ ප්‍රගතිය</span><h3 style="font-size:1.35rem;font-weight:800;color:#FFFFFF;margin:0.2rem 0 0 0;"><span class="blue-text-gradient">' + monthLabel + '</span></h3></div><span class="glass-badge green" style="font-size:0.78rem;padding:0.35rem 0.8rem;"><i class="bi bi-check-circle-fill"></i> ස්වයංක්‍රීයව යාවත්කාලීන වේ</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.7rem;margin-bottom:1.1rem;" class="latest-month-mini-kpis"><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #38BDF8;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">වැඩසටහන් ගණන</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + actCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #FBBF24;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">සක්‍රීය දින</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + daysCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #34D399;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">වාර්තා කළ වසම්</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + gnCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #A78BFA;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">ඡායාරූප</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + photoCount + '</div></div></div><div style="margin-bottom:1.1rem;"><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-pie-chart-fill text-info"></i> ක්ෂේත්‍ර අනුව බෙදීම</div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + secHtml + '</div></div><div style="margin-bottom:1.1rem;"><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-geo-alt-fill text-success"></i> වසම් අනුව බෙදීම</div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + gnHtml + '</div></div><div><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-list-check text-gold"></i> ' + monthLabel + ' වැඩසටහන් ලැයිස්තුව (' + actCount + ')</div><div style="display:flex;flex-direction:column;gap:0.5rem;max-height:420px;overflow-y:auto;padding-right:0.25rem;">' + listHtml + '</div></div></div>'; }
+renderLatestMonthProgress() { const container = document.getElementById("latestMonthProgressContainer") || document.getElementById("overviewRecentList"); if (!container) return; const acts = this.data.activities || []; const mSet = new Set(); acts.forEach(a => { const d = (a.date || "").trim(); if (/^\d{4}-\d{2}/.test(d)) mSet.add(d.slice(0, 7)); }); const months = Array.from(mSet).sort(); const latestKey = months.length ? months[months.length - 1] : null; if (!latestKey) { container.innerHTML = '<div style="color:#94A3B8;text-align:center;padding:1.5rem;">නවතම මාසයේ දත්ත හමු නොවීය...</div>'; return; } const siM = {"01":"ජනවාරි","02":"පෙබරවාරි","03":"මාර්තු","04":"අප්‍රේල්","05":"මැයි","06":"ජූනි","07":"ජූලි","08":"අගෝස්තු","09":"සැප්තැම්බර්","10":"ඔක්තෝම්බර්","11":"නොවැම්බර්","12":"දෙසැම්බර්"}; const parts = latestKey.split("-"); const monthLabel = parts[0] + " " + (siM[parts[1]] || parts[1]); const dynamicTabLabel = monthLabel + " ප්‍රගතිය"; if (this.tabTitles) this.tabTitles["latest-month"] = dynamicTabLabel; const sideLatestEl = document.getElementById("sideLatestMonthLabel"); if (sideLatestEl) sideLatestEl.textContent = "2. " + dynamicTabLabel; if (this.currentTab === "latest-month") { const topTitleEl = document.getElementById("currentViewTitle"); if (topTitleEl) topTitleEl.textContent = dynamicTabLabel; } const mActs = acts.filter(a => (a.date || "").trim().startsWith(latestKey)); const gnCounts = {}; const secCounts = {}; let photoCount = 0; mActs.forEach(a => { const gn = a.gnNameSi || a.gnDivision || "වෙනත්"; gnCounts[gn] = (gnCounts[gn] || 0) + 1; const sec = a.sectorSi || a.sector || a.categorySi || a.category || "වෙනත්"; secCounts[sec] = (secCounts[sec] || 0) + 1; if (Array.isArray(a.images)) photoCount += a.images.length; else if (Array.isArray(a.photos)) photoCount += a.photos.length; }); const actCount = mActs.length; const daysCount = this.getUniqueActiveDays(mActs); const gnCount = Object.keys(gnCounts).length; const sortedSec = Object.entries(secCounts).sort((a, b) => b[1] - a[1]); const sortedGn = Object.entries(gnCounts).sort((a, b) => b[1] - a[1]); const sortedActs = mActs.slice().sort((a, b) => (b.date || "").localeCompare(a.date || "")); const secHtml = sortedSec.map(([s, c]) => '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;"><span style="color:#FFFFFF;font-weight:600;">' + s + '</span><span class="glass-badge blue" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + c + '</span></div>').join(""); const activeGn = this.selectedLatestMonthDivision || null; const resetBtnHtml = '<button type="button" class="latest-gn-filter-btn" data-gn-filter="__ALL__" style="cursor:pointer;background:' + (!activeGn ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.06)') + ';border:1px solid ' + (!activeGn ? '#38BDF8' : 'rgba(255,255,255,0.12)') + ';padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;color:#FFFFFF;font-weight:600;">සියලුම වසම් <span class="glass-badge blue" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + actCount + '</span></button>'; const gnHtml = resetBtnHtml + sortedGn.map(([g, c]) => { const isSel = activeGn === g; return '<button type="button" class="latest-gn-filter-btn" data-gn-filter="' + String(g).replace(/"/g, '&quot;') + '" style="cursor:pointer;background:' + (isSel ? 'rgba(16,185,129,0.22)' : 'rgba(255,255,255,0.04)') + ';border:1px solid ' + (isSel ? '#10B981' : 'rgba(255,255,255,0.08)') + ';padding:0.35rem 0.75rem;border-radius:10px;font-size:0.8rem;display:inline-flex;align-items:center;gap:0.45rem;"><span style="color:#FFFFFF;font-weight:600;">' + g + '</span><span class="glass-badge green" style="font-size:0.72rem;padding:0.1rem 0.45rem;">' + c + '</span></button>'; }).join(""); const filteredActs = activeGn ? sortedActs.filter(a => (a.gnNameSi || a.gnDivision || "වෙනත්") === activeGn) : sortedActs; const actLightboxMap = []; const listHtml = filteredActs.map((a, idx) => { const rawP = a.photoObjects || a.photos || a.images || a.photoUrls || []; const photos = rawP.map((p, i) => { const u = this.resolveDriveImageUrl(p); return u ? { id: (p && typeof p === "object" && p.id) ? p.id : `${a.id || idx}-p${i}`, thumbnail: u, full: u, url: u, caption: a.titleSi || a.title || "", date: a.date || "", gn: a.gnNameSi || a.gnDivision || "" } : null; }).filter(Boolean); actLightboxMap[idx] = photos; const titleText = this.buildBlogHeadline(a); const descText = this.cleanSinhalaText([a.fullDescription, a.description, a.details, a.rawDescription, a.narrative, a.summary, a.actionsSi, a.titleSi, a.title].map((v) => this.cleanSinhalaText(v || "")).filter(Boolean).sort((x, y) => y.length - x.length)[0] || ""); const secText = this.cleanSinhalaText(a.categoryNameSi || a.sectorSi || a.sector || a.categorySi || "-"); const siDate = this.formatSinhalaDate(a.date || ""); const ribbonHtml = `<div class="news-blog-ribbon" style="background:linear-gradient(90deg,#0f294a,#1e3a8a);color:#ffffff;padding:0.45rem 0.85rem;border-radius:8px;font-size:0.8rem;font-weight:600;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;"><span><i class="bi bi-tag-fill"></i> ${secText}</span><span><i class="bi bi-calendar3"></i> ${siDate || (a.date || "")}</span><span><i class="bi bi-images"></i> ${photos.length} \u0DA1\u0DCF\u0DBA\u0DCF\u0DBB\u0DD6\u0DB4</span></div>`; const collageHtml = this.buildPhotoCollageHTML(photos, titleText); return `<div class="editorial-activity-card" data-latest-act-idx="${idx}">${ribbonHtml}<h3 class="editorial-card-title">${titleText}</h3>${collageHtml}<p class="editorial-card-description">${descText}</p><div class="editorial-card-meta"><span class="editorial-meta-badge division-pill"><i class="bi bi-geo-alt-fill"></i> ${a.gnNameSi || a.gnDivision || "-"}</span><span class="editorial-meta-badge date-pill"><i class="bi bi-calendar3"></i> ${a.date || ""}</span><span class="editorial-meta-badge sector-pill"><i class="bi bi-tag-fill"></i> ${a.categoryNameSi || a.sectorSi || a.sector || a.categorySi || "-"}</span></div></div>`; }).join(""); container.innerHTML = '<div style="background:rgba(15,23,44,0.7);border-radius:14px;padding:1.2rem;border:1px solid rgba(255,255,255,0.08);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;"><div><span style="font-size:0.8rem;color:#94A3B8;">නවතම සක්‍රීය මාසයේ ප්‍රගතිය</span><h3 style="font-size:1.35rem;font-weight:800;color:#FFFFFF;margin:0.2rem 0 0 0;"><span class="blue-text-gradient">' + monthLabel + '</span></h3></div><span class="glass-badge green" style="font-size:0.78rem;padding:0.35rem 0.8rem;"><i class="bi bi-check-circle-fill"></i> ස්වයංක්‍රීයව යාවත්කාලීන වේ</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.7rem;margin-bottom:1.1rem;" class="latest-month-mini-kpis"><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #38BDF8;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">වැඩසටහන් ගණන</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + actCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #FBBF24;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">සක්‍රීය දින</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + daysCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #34D399;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">වාර්තා කළ වසම්</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + gnCount + '</div></div><div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:0.75rem;border-left:3px solid #A78BFA;"><div style="font-size:0.72rem;color:#94A3B8;font-weight:600;">ඡායාරූප</div><div style="font-size:1.45rem;font-weight:800;color:#FFFFFF;line-height:1.2;">' + photoCount + '</div></div></div><div style="margin-bottom:1.1rem;"><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-pie-chart-fill text-info"></i> ක්ෂේත්‍ර අනුව බෙදීම</div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + secHtml + '</div></div><div style="margin-bottom:1.1rem;"><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-geo-alt-fill text-success"></i> වසම් අනුව බෙදීම</div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + gnHtml + '</div></div><div><div style="font-size:0.78rem;font-weight:700;color:#94A3B8;margin-bottom:0.5rem;"><i class="bi bi-list-check text-gold"></i> ' + monthLabel + ' වැඩසටහන් ලැයිස්තුව (' + actCount + ')</div><div style="display:flex;flex-direction:column;gap:0.5rem;max-height:420px;overflow-y:auto;padding-right:0.25rem;">' + listHtml + '</div></div></div>'; }
   
 
-  renderMonthlyTab() {
-    const tbody = document.getElementById("monthlyTableBody");
-    if (!tbody) return;
-
-    tbody.innerHTML = "";
-    (this.data.monthlyStats || []).forEach(m => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td style="font-weight: 700; color: #FFF;"><i class="bi bi-calendar-event text-gold" style="margin-right: 6px;"></i>${m.monthSi}</td>
-        <td style="text-align: center; font-weight: 700; color: #10B981;">${m.completed || 0}</td>
-        <td style="text-align: center; font-weight: 600; color: #38BDF8;">${m.activeDays || 0} දින</td>
-        <td style="text-align: center; font-weight: 600; color: #FDE68A;">${m.reportingDivisions || m.reportingGns || 0}</td>
-        <td style="text-align: center; font-weight: 700; color: #FFF;">${m.cumulativeActivities || m.cumulativeTotal || 0}</td>
-        <td style="text-align: center;">
-          <span class="glass-badge green" style="font-size: 0.74rem;"><i class="bi bi-check-circle-fill"></i> 100% සම්පූර්ණයි</span>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  // --- All 63 GN Divisions & Dedicated Division Activity View Engine ---
+    // --- All 63 GN Divisions & Dedicated Division Activity View Engine ---
   renderDivisionsTab() {
     // 0. Populate Tab 3 Quick Jump Dropdown
     const tab3Dropdown = document.getElementById("tab3GnJumpDropdown");
@@ -1629,7 +1608,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       <div class="editorial-card-meta">
         <span class="editorial-meta-badge division-pill"><i class="bi bi-geo-alt-fill"></i> ${divisionText}</span>
         <span class="editorial-meta-badge date-pill"><i class="bi bi-calendar3"></i> ${dateText}</span>
-        <span class="editorial-meta-badge sector-pill"><i class="bi bi-tag-fill"></i> ${sectorText}</span>${(act.officerNameSi || act.officerName || act.officerSi || act.officer) ? `<span class="editorial-meta-badge officer-pill"><i class="bi bi-person-fill"></i> ${act.officerNameSi || act.officerName || act.officerSi || act.officer}</span>` : ""}
+        <span class="editorial-meta-badge sector-pill"><i class="bi bi-tag-fill"></i> ${sectorText}</span>
       </div>
       <div class="editorial-activity-footer">
         <span class="activity-sabha" title="${act.sabhaNameSi || ""}"><i class="bi bi-building"></i> ${act.sabhaNameSi || ""}</span>
@@ -2102,7 +2081,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       <div class="editorial-card-meta">
         <span class="editorial-meta-badge division-pill"><i class="bi bi-geo-alt-fill"></i> ${divisionText}</span>
         <span class="editorial-meta-badge date-pill"><i class="bi bi-calendar3"></i> ${dateText}</span>
-        <span class="editorial-meta-badge sector-pill"><i class="bi bi-tag-fill"></i> ${sectorText}</span>${(act.officerNameSi || act.officerName || act.officerSi || act.officer) ? `<span class="editorial-meta-badge officer-pill"><i class="bi bi-person-fill"></i> ${act.officerNameSi || act.officerName || act.officerSi || act.officer}</span>` : ""}
+        <span class="editorial-meta-badge sector-pill"><i class="bi bi-tag-fill"></i> ${sectorText}</span>
       </div>
       <div class="editorial-activity-footer">
         <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
@@ -2502,7 +2481,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
 
         <h4 class="report-section-heading">1. විධායක සාරාංශය (Executive Summary)</h4>
         <p style="font-size: 0.92rem; line-height: 1.8; color: #334155; margin-bottom: 1.2rem;">
-          අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ ග්‍රාම නිලධාරී වසම් 63 හි ස්ථාපිත ප්‍රජා සංවර්ධන සභා මගින් 2026 වර්ෂය තුළ ක්‍රියාත්මක කරන ලද සමස්ත ව්‍යාපෘති ${totalActs} ක් අතුරින් ව්‍යාපෘති ${completedActs} ක් සාර්ථකව අවසන් කර ඇති අතර තවත් ව්‍යාපෘති ${ongoingActs} ක් ක්ෂේත්‍ර මට්ටමින් ක්‍රියාත්මක වේ. මේ සඳහා සත්‍යාපිත ක්ෂේත්‍ර ඡායාරූප ${totalPhotos.toLocaleString()} ක් සාක්ෂි වශයෙන් ලේඛනගත කර ඇඇත.
+          අක්මීමන ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ ග්‍රාම නිලධාරී වසම් 63 හි ස්ථාපිත ප්‍රජා සංවර්ධන සභා මගින් 2026 වර්ෂය තුළ ක්‍රියාත්මක කරන ලද සමස්ත ව්‍යාපෘති ${totalActs} ක් අතුරින් ව්‍යාපෘති ${completedActs} ක් සාර්ථකව අවසන් කර ඇති අතර තවත් ව්‍යාපෘති ${ongoingActs} ක් ක්ෂේත්‍ර මට්ටමින් ක්‍රියාත්මක වේ. මේ සඳහා සත්‍යාපිත ක්ෂේත්‍ර ඡායාරූප ${totalPhotos.toLocaleString()} ක් සාක්ෂි වශයෙන් ලේඛනගත කර ඇත.
         </p>
 
         <h4 class="report-section-heading">2. ක්ෂේත්‍ර මට්ටමේ ප්‍රතිපාදන හා ප්‍රගති සාරාංශය (Sectoral Performance)</h4>
@@ -2655,9 +2634,9 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
         [`අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - වසම් සංවර්ධන වාර්තාව - ${gn.nameSi}`],
         ["ප්‍රජා සංවර්ධන සභාව:", gn.sabhaNameSi, "ප්‍රගතිය:", `${(gn.progress !== undefined ? gn.progress : (gn.totalProjects > 0 ? 100 : 0))}%`, "දිනය:", currentDate],
         [],
-        ["අංකය", "වැඩසටහනේ නම", "දිනය", "ස්ථානය", "අරමුණ", "කාර්යයන්", "ප්‍රතිඵල", "ඡායාරූප ගණන", "ප්‍රගතිය (%)"]
+        ["අංකය", "වැඩසටහනේ නම", "දිනය", "ස්ථානය", "විස්තරය", "කාර්යයන්", "ප්‍රතිඵල", "ඡායාරූප ගණන", "ප්‍රගතිය (%)"]
       ];
-      csvData = "අංකය,වැඩසටහනේ නම,දිනය,ස්ථානය,අරමුණ,කාර්යයන්,ප්‍රතිඵල,ඡායාරූප ගණන,ප්‍රගතිය (%)\n";
+      csvData = "අංකය,වැඩසටහනේ නම,දිනය,ස්ථානය,විස්තරය,කාර්යයන්,ප්‍රතිඵල,ඡායාරූප ගණන,ප්‍රගතිය (%)\n";
 
       if (divActs.length > 0) {
         divActs.forEach((act, idx) => {
@@ -2672,7 +2651,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
                 <div><strong>ස්ථානය:</strong> ${act.locationSi || gn.nameSi}</div>
               </div>
               <div style="font-size: 0.86rem; color: #1E293B; margin-bottom: 0.5rem;">
-                <strong>වැඩසටහනේ අරමුණ:</strong> ${act.purposeSi}
+                <strong>වැඩසටහනේ විස්තරය:</strong> ${act.purposeSi}
               </div>
               <div style="font-size: 0.86rem; color: #1E293B; margin-bottom: 0.5rem;">
                 <strong>සිදු කරන ලද කාර්යයන්:</strong> ${act.actionsSi}
@@ -2791,7 +2770,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
             <td>${act.locationSi || `${act.gnNameSi} ප්‍රජා පරිශ්‍රය`}</td>
           </tr>
           <tr>
-            <td style="font-weight: 700; background: #F8FAFC;">4. වැඩසටහනේ අරමුණ</td>
+            <td style="font-weight: 700; background: #F8FAFC;">4. වැඩසටහනේ විස්තරය</td>
             <td colspan="3">${act.purposeSi}</td>
           </tr>
           <tr>
@@ -2830,14 +2809,14 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
         ["ප්‍රජා සංවර්ධන සභාව", act.sabhaNameSi],
         ["2. පැවැත්වූ දිනය", act.date],
         ["3. ස්ථානය", act.locationSi || act.gnNameSi],
-        ["4. වැඩසටහනේ අරමුණ", act.purposeSi],
+        ["4. වැඩසටහනේ විස්තරය", act.purposeSi],
         ["5. සිදු කරන ලද කාර්යයන්", act.actionsSi],
         ["7. ලබාගත් ප්‍රතිඵල", act.resultsSi],
         ["8. ව්‍යාපෘතියේ ප්‍රගතිය", `${act.progress}% (${act.statusLabelSi})`],
         ["සත්‍යාපිත ඡායාරූප ගණන", (act.images ? act.images.length : 0)],
         ["සම්පූර්ණ කිරීමේ තත්ත්වය", "100% සම්පූර්ණයි"]
       ];
-      csvData = `ක්ෂේත්‍රය,විස්තරය\n"1. වැඩසටහනේ නම","${act.titleSi || act.title || act.description || "වැඩසටහන"}"\n"ග්‍රාම නිලධාරී වසම","${act.gnNameSi}"\n"ප්‍රජා සංවර්ධන සභාව","${act.sabhaNameSi}"\n"2. පැවැත්වූ දිනය","${act.date}"\n"3. ස්ථානය","${act.locationSi || act.gnNameSi}"\n"4. වැඩසටහනේ අරමුණ","${(act.purposeSi || '').replace(/"/g, '""')}"\n"5. සිදු කරන ලද කාර්යයන්","${(act.actionsSi || '').replace(/"/g, '""')}"\"7. ලබාගත් ප්‍රතිඵල","${(act.resultsSi || '').replace(/"/g, '""')}"\n"8. ප්‍රගතිය","${act.progress}%"\n"සත්‍යාපිත ඡායාරූප ගණන",${act.images ? act.images.length : 0}\n`;
+      csvData = `ක්ෂේත්‍රය,විස්තරය\n"1. වැඩසටහනේ නම","${act.titleSi || act.title || act.description || "වැඩසටහන"}"\n"ග්‍රාම නිලධාරී වසම","${act.gnNameSi}"\n"ප්‍රජා සංවර්ධන සභාව","${act.sabhaNameSi}"\n"2. පැවැත්වූ දිනය","${act.date}"\n"3. ස්ථානය","${act.locationSi || act.gnNameSi}"\n"4. වැඩසටහනේ විස්තරය","${(act.purposeSi || '').replace(/"/g, '""')}"\n"5. සිදු කරන ලද කාර්යයන්","${(act.actionsSi || '').replace(/"/g, '""')}"\"7. ලබාගත් ප්‍රතිඵල","${(act.resultsSi || '').replace(/"/g, '""')}"\n"8. ප්‍රගතිය","${act.progress}%"\n"සත්‍යාපිත ඡායාරූප ගණන",${act.images ? act.images.length : 0}\n`;
     }
 
     // -------------------------------------------------------------
@@ -2854,9 +2833,9 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
         ["අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - ඡායාරූප සහිත ප්‍රජා සංවර්ධන වාර්තාව"],
         ["දිනය:", currentDate, "කාලසීමාව:", periodText],
         [],
-        ["අංකය", "වැඩසටහනේ නම", "ග්‍රාම නිලධාරී වසම", "දිනය", "ස්ථානය", "අරමුණ", "ප්‍රගතිය (%)", "ඡායාරූප URL"]
+        ["අංකය", "වැඩසටහනේ නම", "ග්‍රාම නිලධාරී වසම", "දිනය", "ස්ථානය", "විස්තරය", "ප්‍රගතිය (%)", "ඡායාරූප URL"]
       ];
-      csvData = "අංකය,වැඩසටහනේ නම,ග්‍රාම නිලධාරී වසම,දිනය,ස්ථානය,අරමුණ,ප්‍රගතිය (%),ඡායාරූප URL\n";
+      csvData = "අංකය,වැඩසටහනේ නම,ග්‍රාම නිලධාරී වසම,දිනය,ස්ථානය,විස්තරය,ප්‍රගතිය (%),ඡායාරූප URL\n";
 
       galleryItems.forEach((p, idx) => {
         photoCardsHtml += `
@@ -2870,7 +2849,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
                 ${idx + 1}. ${p.titleSi}
               </div>
               <div style="font-size: 0.78rem; color: #475569; line-height: 1.5;">
-                <strong>අරමුණ:</strong> ${p.captionSi}
+                <strong>විස්තරය:</strong> ${p.captionSi}
               </div>
             </div>
           </div>
@@ -2916,7 +2895,6 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
           const cCount = catActs.length;
           const cComp = catActs.filter(a => a.status === "completed").length;
           const cOng = catActs.filter(a => a.status === "ongoing").length;
-          const cBen = catActs.reduce((acc, a) => acc + (parseInt(a.beneficiaries) || 120), 0);
           const cPhotos = catActs.reduce((acc, a) => acc + (a.images ? a.images.length : 0), 0);
           const cProg = cCount > 0 ? Math.round((cComp / cCount) * 100) : 100;
 
@@ -2927,14 +2905,13 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
               <td style="text-align: center; font-weight: 700;">${cCount}</td>
               <td style="text-align: center; color: #15803D; font-weight: 700;">${cComp}</td>
               <td style="text-align: center; color: #3B82F6;">${cOng}</td>
-              <td style="text-align: right;">${(cBen || 0).toLocaleString()} පවුල්</td>
               <td style="text-align: center; font-weight: 700; color: #0D9488;">${(cPhotos || 0).toLocaleString()}</td>
               <td style="text-align: center; font-weight: 800; color: #15803D;">${cProg}%</td>
             </tr>
           `;
 
-          excelRows.push([idx, cat.nameSi, cCount, cComp, cOng, cBen, cPhotos, `${cProg}%`]);
-          csvData += `${idx},"${cat.nameSi}",${cCount},${cComp},${cOng},${cBen},${cPhotos},${cProg}%\n`;
+          excelRows.push([idx, cat.nameSi, cCount, cComp, cOng, cPhotos, `${cProg}%`]);
+          csvData += `${idx},"${cat.nameSi}",${cCount},${cComp},${cOng},${cPhotos},${cProg}%\n`;
         }
       });
 
@@ -2948,7 +2925,6 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
               <th style="text-align: center;">මුළු වැඩසටහන්</th>
               <th style="text-align: center;">සම්පූර්ණ වූ</th>
               <th style="text-align: center;">ක්‍රියාත්මකයි</th>
-              <th style="text-align: right;">ප්‍රතිලාභී පවුල්</th>
               <th style="text-align: center;">ඡායාරූප ගණන</th>
               <th style="text-align: center;">ප්‍රගතිය</th>
             </tr>
@@ -2991,14 +2967,13 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
             <td style="text-align: center; font-weight: 700;">${g.totalProjects}</td>
             <td style="text-align: center; color: #15803D; font-weight: 700;">${g.completed}</td>
             <td style="text-align: center; color: #1D4ED8;">${g.ongoing}</td>
-            <td style="text-align: right;">${(g.beneficiaries || 0).toLocaleString()}</td>
             <td style="text-align: center; font-weight: 700; color: #0D9488;">${g.photoCount || 0}</td>
             <td style="text-align: center; font-weight: 800; color: #15803D;">${g.progress}%</td>
           </tr>
         `;
 
-        excelRows.push([idx + 1, g.nameSi, g.sabhaNameSi, g.keySectorSi, g.totalProjects, g.completed, g.ongoing, g.beneficiaries, g.photoCount || 0, `${g.progress}%`]);
-        csvData += `${idx + 1},"${g.nameSi}","${g.sabhaNameSi}","${g.keySectorSi}",${g.totalProjects},${g.completed},${g.ongoing},${g.beneficiaries},${g.photoCount || 0},${g.progress}%\n`;
+        excelRows.push([idx + 1, g.nameSi, g.sabhaNameSi, g.keySectorSi, g.totalProjects, g.completed, g.ongoing, g.photoCount || 0, `${g.progress}%`]);
+        csvData += `${idx + 1},"${g.nameSi}","${g.sabhaNameSi}","${g.keySectorSi}",${g.totalProjects},${g.completed},${g.ongoing},${g.photoCount || 0},${g.progress}%\n`;
       });
 
       bodyHtml = `
@@ -3016,7 +2991,6 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
               <th style="text-align: center;">මුළු</th>
               <th style="text-align: center;">නිමයි</th>
               <th style="text-align: center;">ක්‍රියා</th>
-              <th style="text-align: right;">ප්‍රතිලාභීන්</th>
               <th style="text-align: center;">සත්‍යාපිත ඡායාරූප</th>
               <th style="text-align: center;">ප්‍රගතිය</th>
             </tr>
@@ -3391,7 +3365,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
   }
 
   exportActivitiesCSV() {
-    let csv = "ID,වැඩසටහන් නම,ග්‍රාම නිලධාරී වසම,ප්‍රජා සංවර්ධන සභාව,අංශය,දිනය,ස්ථානය,අරමුණ,කාර්යයන්,ප්‍රතිඵල,ප්‍රගතිය (%),ඡායාරූප ගණන\n";
+    let csv = "ID,වැඩසටහන් නම,ග්‍රාම නිලධාරී වසම,ප්‍රජා සංවර්ධන සභාව,අංශය,දිනය,ස්ථානය,විස්තරය,කාර්යයන්,ප්‍රතිඵල,ප්‍රගතිය (%),ඡායාරූප ගණන\n";
     this.data.activities.forEach(a => {
       csv += `"${a.id}","${a.titleSi}","${a.gnNameSi}","${a.sabhaNameSi}","${a.categoryNameSi}","${a.date}","${a.locationSi || ''}","${(a.purposeSi || '').replace(/"/g, '""')}","${(a.actionsSi || '').replace(/"/g, '""')}","${(a.resultsSi || '').replace(/"/g, '""')}",${a.progress},${a.images ? a.images.length : 0}\n`;
     });
@@ -3401,7 +3375,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
   exportGNDivisionsCSV() {
     let csv = "ග්‍රාම නිලධාරී වසම,ප්‍රජා සංවර්ධන සභාව,ප්‍රමුඛ ක්ෂේත්‍රය,මුළු වැඩසටහන්,සම්පූර්ණ වූ,ක්‍රියාත්මකයි,සත්‍යාපිත ඡායාරූප,ප්‍රගතිය (%)\n";
     this.data.gnDivisions.forEach(g => {
-      csv += `"${g.nameSi}","${g.sabhaNameSi}","${g.keySectorSi}",${g.totalProjects},${g.completed},${g.ongoing},${g.beneficiaries},${g.photoCount || 0},${g.progress}\n`;
+      csv += `"${g.nameSi}","${g.sabhaNameSi}","${g.keySectorSi}",${g.totalProjects},${g.completed},${g.ongoing},${g.photoCount || 0},${g.progress}\n`;
     });
     this.downloadFile(csv, "Akmeemana_63_GN_Divisions_Progress.csv", "text/csv;charset=utf-8;");
   }
@@ -3600,8 +3574,6 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
       extraMeta.innerHTML = `
         <span><i class="bi bi-geo"></i> ස්ථානය: ${item.locationSi || item.gnDivision}</span>
         <span>•</span>
-        <span><i class="bi bi-people"></i> ප්‍රතිලාභීන්: ${item.beneficiaries || "ප්‍රජාව"}</span>
-        <span>•</span>
         <span><i class="bi bi-speedometer2"></i> ප්‍රගතිය: ${item.progress || 100}%</span>
       `;
     }
@@ -3638,7 +3610,6 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
             <td style="border: 1px solid #CCC; padding: 8px; font-weight: 700;">${act.titleSi || act.title || act.description || "වැඩසටහන"}</td>
             <td style="border: 1px solid #CCC; padding: 8px;">${act.date}</td>
             <td style="border: 1px solid #CCC; padding: 8px;">${act.purposeSi}</td>
-            <td style="border: 1px solid #CCC; padding: 8px; text-align: center;">${act.beneficiaries}</td>
             <td style="border: 1px solid #CCC; padding: 8px; text-align: center;">${act.images ? act.images.length : 0}</td>
             <td style="border: 1px solid #CCC; padding: 8px; text-align: center; font-weight: 700; color: #15803D;">${act.progress}%</td>
           </tr>
@@ -3647,7 +3618,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     } else {
       activitiesRows = `
         <tr>
-          <td colspan="7" style="border: 1px solid #CCC; padding: 18px; text-align: center; color: #555;">
+          <td colspan="6" style="border: 1px solid #CCC; padding: 18px; text-align: center; color: #555;">
             මෙම වසමේ අනුමත වැඩසටහන් ${gn.totalProjects} ක් ක්‍රියාත්මක වෙමින් පවතින අතර ක්ෂේත්‍ර ප්‍රගතිය ${(gn.progress !== undefined ? gn.progress : (gn.totalProjects > 0 ? 100 : 0))}% කි. සවිස්තර දත්ත සටහන් සම්පාදනය වෙමින් පවතී.
           </td>
         </tr>
@@ -3681,7 +3652,6 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
         <div class="meta-box">
           <div><span style="font-size: 11px; color: #666;">මුළු වැඩසටහන්:</span><br><strong>${gn.totalProjects}</strong></div>
           <div><span style="font-size: 11px; color: #666;">සම්පූර්ණ වූ:</span><br><strong style="color: #15803D;">${gn.completed} (ප්‍රගතිය ${(gn.progress !== undefined ? gn.progress : (gn.totalProjects > 0 ? 100 : 0))}%)</strong></div>
-          <div><span style="font-size: 11px; color: #666;">ප්‍රතිලාභී පවුල්:</span><br><strong>${(gn.beneficiaries || 0).toLocaleString()}</strong></div>
           <div><span style="font-size: 11px; color: #666;">සත්‍යාපිත ඡායාරූප:</span><br><strong style="color: #0D9488;">${gn.photoCount || activities.reduce((acc, a) => acc + (a.images ? a.images.length : 0), 0)}</strong></div>
         </div>
 
@@ -3692,8 +3662,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
               <th style="width: 35px;">අංකය</th>
               <th>වැඩසටහනේ නම</th>
               <th style="width: 85px;">දිනය</th>
-              <th>වැඩසටහනේ අරමුණ</th>
-              <th style="width: 80px;">ප්‍රතිලාභීන්</th>
+              <th>වැඩසටහනේ විස්තරය</th>
               <th style="width: 80px; text-align: center;">ඡායාරූප</th>
               <th style="width: 65px;">ප්‍රගතිය</th>
             </tr>
@@ -3780,7 +3749,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
         </div>
 
         <div class="field-block">
-          <div class="field-label">4. වැඩසටහනේ අරමුණ</div>
+          <div class="field-label">4. වැඩසටහනේ විස්තරය</div>
           <div class="field-val">${act.purposeSi}</div>
         </div>
 
@@ -3791,9 +3760,9 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
           <div>
-            <div class="field-label">6. ප්‍රතිලාභීන් / සහභාගී වූ පිරිස</div>
-            <div class="field-val" style="font-weight: 700; color: #15803D;">${act.beneficiaries}</div>
-          </div>
+                    <div class="field-label">6. ඡායාරූප ගණන</div>
+                    <div class="field-val" style="font-weight: 700; color: #15803D;">${act.images ? act.images.length : 0}</div>
+                    </div>
           <div>
             <div class="field-label">8. ව්‍යාපෘතියේ ප්‍රගතිය</div>
             <div class="field-val" style="font-weight: 800; color: #1D4ED8;">${act.progress}% (${act.statusLabelSi})</div>
@@ -4144,7 +4113,7 @@ try { this.renderAnCumulativeSubtab(filtered); } catch (e) { console.error(e); }
     try { this.renderAnMonthlySubtab("all", filtered); } catch (e) { console.error(e); }
 try { this.renderAnDivisionsSubtab(filtered); } catch (e) { console.error(e); }
 try { this.renderAnSectorsSubtab(filtered); } catch (e) { console.error(e); }
-try { this.renderAnTimelineSubtab(); } catch (e) { console.error(e); }
+try { this.renderAnTimelineSubtab(filtered); } catch (e) { console.error(e); }
 try { this.renderAnDiversitySubtab(); } catch (e) { console.error(e); }
 try { this.renderAnCompareSubtab(); } catch (e) { console.error(e); }
 try { this.renderAnDeepdiveSubtab(filtered); } catch (e) { console.error(e); }
@@ -4407,9 +4376,59 @@ try {
   }
 
   // --- SUBTAB 5: TIMELINE & WEEKDAY ANALYSIS ---
-  renderAnTimelineSubtab() {
+  renderAnTimelineSubtab(filtered = null) {
+    const acts = (filtered && Array.isArray(filtered.activities)) ? filtered.activities : (this.data.activities || []);
+    const dayNamesSi = ["ඉරිදා", "සඳුදා", "අඟහරුවාදා", "බදාදා", "බ්‍රහස්පතින්දා", "සිකුරාදා", "සෙනසුරාදා"];
+    const weekdaysList = [
+      { day: "සඳුදා", count: 0, color: "#38BDF8" },
+      { day: "අඟහරුවාදා", count: 0, color: "#38BDF8" },
+      { day: "බදාදා", count: 0, color: "#38BDF8" },
+      { day: "බ්‍රහස්පතින්දා", count: 0, color: "#38BDF8" },
+      { day: "සිකුරාදා", count: 0, color: "#38BDF8" },
+      { day: "සෙනසුරාදා", count: 0, color: "#F59E0B" },
+      { day: "ඉරිදා", count: 0, color: "#EF4444" }
+    ];
+    const dayToIdx = [6, 0, 1, 2, 3, 4, 5];
+    const dateMap = {};
+    acts.forEach(a => {
+      if (!a.date) return;
+      const dt = new Date(a.date + "T00:00:00Z");
+      if (!isNaN(dt.getTime())) {
+        weekdaysList[dayToIdx[dt.getUTCDay()]].count++;
+      }
+      if (!dateMap[a.date]) {
+        const daySi = !isNaN(dt.getTime()) ? dayNamesSi[dt.getUTCDay()] : "";
+        dateMap[a.date] = { date: a.date, daySi, count: 0, cats: new Set() };
+      }
+      dateMap[a.date].count++;
+      if (a.category || a.categorySi) dateMap[a.date].cats.add(a.categorySi || a.category);
+    });
+    const weekdaysTotal = weekdaysList.slice(0, 5).reduce((s, d) => s + d.count, 0);
+    const weekendsTotal = weekdaysList.slice(5).reduce((s, d) => s + d.count, 0);
+    const totalWeekdayActs = weekdaysTotal + weekendsTotal;
+    const busiest = weekdaysList.reduce((best, cur) => (cur.count > best.count ? cur : best), weekdaysList[0]);
+    const activeDates = Object.keys(dateMap).sort();
+    const activeDays = activeDates.length;
+    const avgPerDay = activeDays > 0 ? (acts.length / activeDays).toFixed(2) : "0";
+    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setEl("anTimelineWeekdaysVal", weekdaysTotal);
+    setEl("anTimelineWeekendsVal", weekendsTotal);
+    setEl("anTimelineBusiestDay", busiest.count > 0 ? `${busiest.day} (${busiest.count})` : "-");
+    setEl("anTimelineActiveDays", activeDays);
+    setEl("anTimelineAvgPerDay", avgPerDay);
+    const wdPct = totalWeekdayActs > 0 ? Math.round((weekdaysTotal / totalWeekdayActs) * 100) : 0;
+    const wePct = totalWeekdayActs > 0 ? Math.round((weekendsTotal / totalWeekdayActs) * 100) : 0;
+    setEl("anTimelineSplitBadge", `${wdPct}% / ${wePct}%`);
+    setEl("anPeakDatesRangeBadge", activeDays > 0 ? `${activeDates[0]} - ${activeDates[activeDates.length - 1]}` : "-");
+    setEl("anHeatmapSubtext", `සක්‍රීය දින ${activeDays} | මුළු වැඩසටහන් ${acts.length}`);
+    if (window.pssCharts) {
+      window.pssCharts.renderAnTimelineCharts(weekdaysList);
+    }
     const peakGrid = document.getElementById("anPeakDatesGrid");
-    const peaks = this.data.analytics?.peakDates || [];
+    const peaks = Object.values(dateMap)
+      .sort((a, b) => b.count - a.count || b.date.localeCompare(a.date))
+      .slice(0, 8)
+      .map(d => ({ ...d, keyActivities: Array.from(d.cats).slice(0, 3).join(", ") }));
     if (peakGrid) {
       peakGrid.innerHTML = "";
       peaks.forEach(p => {
@@ -4428,7 +4447,7 @@ try {
 
     // Render Calendar Heatmap
     const heatmapWrap = document.getElementById("anCalendarHeatmapWrap");
-    const heatmapData = this.data.analytics?.heatmap || [];
+    const heatmapData =activeDates.map(d => ({ date: d, count: dateMap[d].count }));
     if (heatmapWrap && heatmapData.length > 0) {
       // Group by month
       const monthsMap = {};
@@ -4546,11 +4565,19 @@ try {
     });
 
     // Diversity Tiers Table
+   const allDivs = Object.values(divStatsMap);
+    const totalDivCount = allDivs.length || 1;
+    const t7 = allDivs.filter(d => d.cats.size >= 7);
+    const t5 = allDivs.filter(d => d.cats.size >= 5 && d.cats.size <= 6);
+    const t3 = allDivs.filter(d => d.cats.size >= 3 && d.cats.size <= 4);
+    const t1 = allDivs.filter(d => d.cats.size >= 1 && d.cats.size <= 2);
+    const fmtEx = (arr) => arr.slice(0, 4).map(d => d.name).join(", ") || "-";
+    const fmtPct = (arr) => ((arr.length / totalDivCount) * 100).toFixed(1);
     const tiers = [
-      { name: "ඉහළම විවිධත්වය (7 - 9 ක්ෂේත්‍ර)", count: 7, pct: 11.1, examples: "හියාචාර උතුර, නුගදූව, ජඹුකැටිය, බදුන්ගොඩ ජනපදය", plan: "ආදර්ශ බහුවිධ සංවර්ධන වසම් ලෙස සම්මාන ලබාදීම හා අත්දැකීම් බෙදාගැනීම." },
-      { name: "මධ්‍යස්ථ විවිධත්වය (5 - 6 ක්ෂේත්‍ර)", count: 32, pct: 50.8, examples: "අඹගහවිල, නියාගම, වලහන්දූව, පින්නදූව, බටදූව", plan: "අඩු අවධානයක් ලැබුණු සෞඛ්‍ය හා ඩෙංගු මර්දන ක්ෂේත්‍ර වෙත ව්‍යාප්ත කිරීම." },
-      { name: "සාමාන්‍ය විවිධත්වය (3 - 4 ක්ෂේත්‍ර)", count: 21, pct: 33.3, examples: "ඉහළගොඩ බටහිර, අමල්ගම, ගනේගොඩ බටහිර, තල්පගොඩ", plan: "ස්වයං රැකියා හා ප්‍රජා දැනුවත් කිරීමේ නව වැඩසටහන් සැලසුම් කිරීම." },
-      { name: "අවධානය අවශ්‍ය (1 - 2 ක්ෂේත්‍ර)", count: 3, pct: 4.8, examples: "දිවුලාන, තලාහිටියාව", plan: "ක්ෂේත්‍ර ප්‍රගති නිලධාරීන්ගේ සෘජු මඟපෙන්වීම යටතේ බහුවිධ වැඩසටහන් හඳුන්වා දීම." }
+      { name: "ඉහළ විවිධත්වය (7+ ක්ෂේත්‍ර)", count: t7.length, pct: fmtPct(t7), examples: fmtEx(t7), plan: "අනෙකුත් වසම් සඳහා ආදර්ශයක් ලෙස භාවිතා කිරීම" },
+      { name: "මධ්‍යම විවිධත්වය (5 - 6 ක්ෂේත්‍ර)", count: t5.length, pct: fmtPct(t5), examples: fmtEx(t5), plan: "මත්ද්‍රව්‍ය මර්ධන සහ සංස්කෘතික ක්ෂේත්‍ර එක් කිරීම" },
+      { name: "සාමාන්‍ය විවිධත්වය (3 - 4 ක්ෂේත්‍ර)", count: t3.length, pct: fmtPct(t3), examples: fmtEx(t3), plan: "වැඩි ක්ෂේත්‍ර ගණනකට ව්‍යාප්ත කිරීම" },
+      { name: "අවම මට්ටම (1 - 2 ක්ෂේත්‍ර)", count: t1.length, pct: fmtPct(t1), examples: fmtEx(t1), plan: "විශේෂිත ක්ෂේත්‍ර වැඩසටහන් වලට යොමු කිරීම" }
     ];
 
     tbody.innerHTML = "";
@@ -4763,6 +4790,19 @@ try {
     if (window.pssCharts) {
       window.pssCharts.renderAnDeepdiveFinChart(filtered?.divisions || this.data.gnDivisions);
     }
+const acts = (filtered && Array.isArray(filtered.activities)) ? filtered.activities : (this.data.activities || []);
+    const activeDaysSet = new Set();
+    let totalPhotos = 0;
+    acts.forEach(a => {
+      if (a.date) activeDaysSet.add(a.date);
+      if (Array.isArray(a.photos)) totalPhotos += a.photos.length;
+    });
+    const elCompleted = document.getElementById("anDeepdiveCompletedText");
+    if (elCompleted) elCompleted.textContent = `${acts.length} / ${acts.length}`;
+    const elDays = document.getElementById("anDeepdiveActiveDays");
+    if (elDays) elDays.textContent = activeDaysSet.size;
+    const elPhotos = document.getElementById("anDeepdivePhotos");
+    if (elPhotos) elPhotos.textContent = totalPhotos;
   }
 }
 
