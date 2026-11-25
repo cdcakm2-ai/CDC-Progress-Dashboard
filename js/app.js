@@ -1579,9 +1579,9 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     const visible = photos;
     const safeTitle = String(title || "").replace(/"/g, "&quot;");
     const itemsHtml = visible.map((p, idx) => {
-      const src = typeof p === "string" ? p : (p.thumbnail || p.full || p.url || "");
+      const src = typeof p === "string" ? p : (p.thumbnail || p.full || p.url || ""); const mId = src.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || src.match(/[?&]id=([a-zA-Z0-9_-]{20,})/); const fbUrl = mId ? `https://drive.google.com/thumbnail?id=${mId[1]}&sz=w1000` : ""; const onErr = fbUrl ? ` onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src='${fbUrl}';}"` : "";
       const moreBadge = "";
-      return `<div class="photo-collage-item" data-photo-idx="${idx}" title="${safeTitle}"><img src="${src}" referrerpolicy="no-referrer" alt="${safeTitle}" loading="lazy">${moreBadge}</div>`;
+      return `<div class="photo-collage-item" data-photo-idx="${idx}" title="${safeTitle}"><img src="${src}" referrerpolicy="no-referrer"${onErr} alt="${safeTitle}" loading="lazy">${moreBadge}</div>`;
     }).join("");
     return `<div class="photo-collage ${countClass}">${itemsHtml}</div>`;
   }
@@ -3559,7 +3559,7 @@ renderLatestMonthProgress() { const container = document.getElementById("latestM
     if (!item) return;
 
     const img = document.getElementById("lightboxImg");
-    if (img) { img.referrerPolicy = "no-referrer"; img.src = this.resolveDriveImageUrl(item); }
+    if (img) { const u = this.resolveDriveImageUrl(item); const mId = u.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || u.match(/[?&]id=([a-zA-Z0-9_-]{20,})/); img.referrerPolicy = "no-referrer"; img.dataset.fb = ""; img.onerror = () => { if (!img.dataset.fb && mId) { img.dataset.fb = "1"; img.src = `https://drive.google.com/thumbnail?id=${mId[1]}&sz=w1200`; } }; img.src = u; }
     const titleEl = document.getElementById("lightboxTitle");
     if (titleEl) titleEl.textContent = item.titleSi;
     const captionEl = document.getElementById("lightboxCaption");
