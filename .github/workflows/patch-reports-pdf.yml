@@ -73,7 +73,7 @@ jobs:
 
               const imgsHtml = uniqueUrls.length > 0
                 ? \`<div class="report-act-photo-strip" style="display:grid;grid-template-columns:repeat(\${Math.min(3, uniqueUrls.length)}, 1fr);gap:8px;margin-top:8px;">\${uniqueUrls.map((u, pi) => {
-                    const mId = u.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || u.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+                    const mId = u.match(/\\/d\\/([a-zA-Z0-9_-]{20,})/) || u.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
                     const fb = mId ? \`https://drive.google.com/thumbnail?id=\${mId[1]}&sz=w1000\` : "";
                     const onErr = fb ? \` onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src='\${fb}';}"\` : "";
                     return \`<div style="border:1px solid #CBD5E1;border-radius:6px;overflow:hidden;background:#F8FAFC;aspect-ratio:4/3;"><img src="\${u}" referrerpolicy="no-referrer"\${onErr} alt="\${a.titleSi || ""} - \${pi + 1}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>\`;
@@ -157,7 +157,7 @@ jobs:
             const siM = { "01": "ජන", "02": "පෙබ", "03": "මාර්", "04": "අප්‍රේ", "05": "මැයි", "06": "ජූනි", "07": "ජූලි", "08": "අගෝ", "09": "සැප්", "10": "ඔක්", "11": "නොවැ", "12": "දෙසැ" };
             acts.forEach(a => {
               const mk = String(a.date || "").slice(0, 7);
-              if (/^\d{4}-\d{2}$/.test(mk)) mMap[mk] = (mMap[mk] || 0) + 1;
+              if (/^\\d{4}-\\d{2}$/.test(mk)) mMap[mk] = (mMap[mk] || 0) + 1;
             });
             const mEntries = Object.keys(mMap).sort().map(k => ({ key: k, label: \`\${k.slice(2,4)}/\${siM[k.slice(5,7)] || k.slice(5,7)}\`, count: mMap[k] }));
             const maxM = Math.max(1, ...mEntries.map(x => x.count));
