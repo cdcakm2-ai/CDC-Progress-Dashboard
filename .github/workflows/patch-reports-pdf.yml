@@ -73,6 +73,357 @@ jobs:
 
               const imgsHtml = uniqueUrls.length > 0
                 ? \`<div class="report-act-photo-strip" style="display:grid;grid-template-columns:repeat(\${Math.min(3, uniqueUrls.length)}, 1fr);gap:8px;margin-top:8px;">\${uniqueUrls.map((u, pi) => {
+                    const mId = u.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || u.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+                    const fb = mId ? \`https://drive.google.com/thumbnail?id=\${mId[1]}&sz=w1000\` : "";
+                    const onErr = fb ? \` onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src='\${fb}';}"\` : "";
+                    return \`<div style="border:1px solid #CBD5E1;border-radius:6px;overflow:hidden;background:#F8FAFC;aspect-ratio:4/3;"><img src="\${u}" referrerpolicy="no-referrer"\${onErr} alt="\${a.titleSi || ""} - \${pi + 1}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>\`;
+                  }).join("")}</div>\`
+                : \`<div style="font-size:0.78rem;color:#64748B;margin-top:6px;font-style:italic;">මෙම වැඩසටහන සඳහා ඡායාරූප අමුණා නොමැත.</div>\`;
+
+              groupedBlocksHtml += \`
+                <div class="report-program-block" style="border:1px solid #CBD5E1;border-radius:8px;padding:12px 14px;margin-bottom:14px;background:#FFFFFF;break-inside:avoid;page-break-inside:avoid;">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;border-bottom:1px solid #E2E8F0;padding-bottom:6px;margin-bottom:6px;">
+                    <div style="font-size:0.95rem;font-weight:800;color:#0F172A;">\${idx + 1}. \${a.titleSi || a.title || "ප්‍රජා සංවර්ධන වැඩසටහන"}</div>
+                    <span style="font-size:0.74rem;font-weight:700;background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:999px;border:1px solid #BFDBFE;">ඡායාරූප \${uniqueUrls.length}</span>
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;gap:10px;font-size:0.78rem;color:#334155;font-weight:600;margin-bottom:6px;">
+                    <span><strong>වසම:</strong> \${a.gnNameSi || a.gnDivision || "-"}</span>
+                    <span>•</span>
+                    <span><strong>දිනය:</strong> \${a.date || "-"}</span>
+                    <span>•</span>
+                    <span><strong>ක්ෂේත්‍රය:</strong> \${a.categoryNameSi || a.categoryName || "-"}</span>
+                  </div>
+                  <div style="font-size:0.84rem;color:#1E293B;line-height:1.6;">
+                    \${a.description || a.titleSi || ""}
+                  </div>
+                  \${imgsHtml}
+                </div>
+              \`;
+
+              const joinedUrls = uniqueUrls.join(" | ");
+              excelRows.push([idx + 1, a.gnNameSi || "", a.date || "", a.categoryNameSi || "", a.titleSi || "", a.description || "", uniqueUrls.length, joinedUrls]);
+              csvData += \`\${idx + 1},"\${(a.gnNameSi || "").replace(/"/g, '""')}","\${a.date || ""}","\${(a.categoryNameSi || "").replace(/"/g, '""')}","\${(a.titleSi || "").replace(/"/g, '""')}","\${(a.description || "").replace(/"/g, '""')}",\${uniqueUrls.length},"\${joinedUrls}"\\n\`;
+            });
+
+            bodyHtml = \`
+              <div style="margin-bottom:14px;background:#F8FAFC;border:1px solid #CBD5E1;padding:12px 14px;border-radius:8px;">
+                <h4 style="font-size:0.95rem;font-weight:800;color:#0F172A;margin:0 0 6px 0;">1. ග්‍රාම නිලධාරී වසම් අනුව සමස්ත වැඩසටහන් සාරාංශය (මුළු වැඩසටහන්: \${sortedActs.length} | වසම්: \${gnSummaryList.length} | ඡායාරූප: \${totalRepPhotos})</h4>
+                <table class="report-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+                  <thead>
+                    <tr style="background:#EFF6FF;">
+                      <th style="width:45px;text-align:center;">අංකය</th>
+                      <th>ග්‍රාම නිලධාරී වසම</th>
+                      <th style="width:110px;text-align:center;">වැඩසටහන් ගණන</th>
+                      <th style="width:100px;text-align:center;">ඡායාරූප ගණන</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    \${gnSummaryRowsHtml}
+                    <tr style="background:#F1F5F9;font-weight:800;">
+                      <td colspan="2" style="text-align:right;">සමස්ත එකතුව</td>
+                      <td style="text-align:center;color:#1D4ED8;">\${sortedActs.length}</td>
+                      <td style="text-align:center;">\${totalRepPhotos}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <h4 style="font-size:0.98rem;font-weight:800;color:#0F172A;margin:14px 0 10px 0;border-bottom:2px solid #1D4ED8;padding-bottom:4px;">2. වැඩසටහන් අනුව සම්පූර්ණ විස්තර හා ඡායාරූප එකතුව (\${sortedActs.length})</h4>
+              <div class="report-grouped-programs">
+                \${groupedBlocksHtml}
+              </div>
+            \`;
+          }
+
+          `;
+
+          src = src.slice(0, i1) + newReport5 + src.slice(i2);
+
+          const a3 = '      <!-- Official Signatures -->';
+          const i3 = src.indexOf(a3);
+          if (i3 === -1) throw new Error('a3 missing');
+          src = src.slice(0, i3) + '      ${this.buildReportProgressChartsSVG(reportActs, reportMonthly)}\n\n' + src.slice(i3);
+
+          const a4 = '  // --- DOWNLOAD FORMAT 1: PDF Download Engine ---\n  downloadReportPDF() {';
+          const a5 = '  // --- DOWNLOAD FORMAT 2: Excel (XLSX) Download Engine ---';
+          const i4 = src.indexOf(a4), i5 = src.indexOf(a5);
+          if (i4 === -1 || i5 === -1) throw new Error('a4/a5 missing');
+
+          const newPdfAndCharts = `  // --- PRINT-SAFE INLINE SVG PROGRESS CHARTS FOR FINAL PAGE OF REPORT ---
+          buildReportProgressChartsSVG(reportActs = [], reportMonthly = []) {
+            const acts = Array.isArray(reportActs) ? reportActs : [];
+            if (!acts.length) return "";
+
+            const mMap = {};
+            const siM = { "01": "ජන", "02": "පෙබ", "03": "මාර්", "04": "අප්‍රේ", "05": "මැයි", "06": "ජූනි", "07": "ජූලි", "08": "අගෝ", "09": "සැප්", "10": "ඔක්", "11": "නොවැ", "12": "දෙසැ" };
+            acts.forEach(a => {
+              const mk = String(a.date || "").slice(0, 7);
+              if (/^\d{4}-\d{2}$/.test(mk)) mMap[mk] = (mMap[mk] || 0) + 1;
+            });
+            const mEntries = Object.keys(mMap).sort().map(k => ({ key: k, label: \`\${k.slice(2,4)}/\${siM[k.slice(5,7)] || k.slice(5,7)}\`, count: mMap[k] }));
+            const maxM = Math.max(1, ...mEntries.map(x => x.count));
+            const barW = Math.max(22, Math.floor(620 / Math.max(1, mEntries.length)) - 10);
+            const mBarsSvg = mEntries.map((m, i) => {
+              const h = Math.round((m.count / maxM) * 120);
+              const x = 42 + i * (barW + 10);
+              const y = 140 - h;
+              return \`<rect x="\${x}" y="\${y}" width="\${barW}" height="\${h}" rx="4" fill="#2563EB"/><text x="\${x + barW/2}" y="\${y - 5}" text-anchor="middle" font-size="10" font-weight="700" fill="#0F172A">\${m.count}</text><text x="\${x + barW/2}" y="156" text-anchor="middle" font-size="9" fill="#334155">\${m.label}</text>\`;
+            }).join("");
+            const mSvgWidth = Math.max(680, 60 + mEntries.length * (barW + 10));
+
+            const sMap = {};
+            acts.forEach(a => {
+              const s = a.categoryNameSi || a.categoryName || "වෙනත්";
+              sMap[s] = (sMap[s] || 0) + 1;
+            });
+            const sEntries = Object.entries(sMap).sort((a, b) => b[1] - a[1]);
+            const maxS = Math.max(1, ...sEntries.map(x => x[1]));
+            const sColors = ["#2563EB", "#059669", "#D97706", "#DC2626", "#7C3AED", "#0891B2", "#EA580C", "#4F46E5", "#14B8A6", "#DB2777"];
+            const sRowsSvg = sEntries.map(([name, cnt], i) => {
+              const w = Math.max(8, Math.round((cnt / maxS) * 340));
+              const y = 12 + i * 24;
+              const pct = ((cnt / acts.length) * 100).toFixed(1);
+              return \`<text x="190" y="\${y + 13}" text-anchor="end" font-size="10.5" font-weight="600" fill="#0F172A">\${name.slice(0, 24)}</text><rect x="200" y="\${y + 2}" width="\${w}" height="15" rx="3" fill="\${sColors[i % sColors.length]}"/><text x="\${206 + w}" y="\${y + 13}" font-size="10" font-weight="700" fill="#0F172A">\${cnt} (\${pct}%)</text>\`;
+            }).join("");
+            const sSvgHeight = Math.max(60, 20 + sEntries.length * 24);
+
+            const gMap = {};
+            acts.forEach(a => {
+              const g = a.gnNameSi || a.gnDivision || "වෙනත්";
+              gMap[g] = (gMap[g] || 0) + 1;
+            });
+            const gEntries = Object.entries(gMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const maxG = Math.max(1, ...gEntries.map(x => x[1]));
+            const gRowsSvg = gEntries.map(([name, cnt], i) => {
+              const w = Math.max(8, Math.round((cnt / maxG) * 340));
+              const y = 12 + i * 24;
+              return \`<text x="190" y="\${y + 13}" text-anchor="end" font-size="10.5" font-weight="600" fill="#0F172A">\${name.slice(0, 24)}</text><rect x="200" y="\${y + 2}" width="\${w}" height="15" rx="3" fill="#0D9488"/><text x="\${206 + w}" y="\${y + 13}" font-size="10" font-weight="700" fill="#0F172A">\${cnt}</text>\`;
+            }).join("");
+            const gSvgHeight = Math.max(60, 20 + gEntries.length * 24);
+
+            const activeGns = Object.keys(gMap).length;
+            const activeDays = new Set(acts.map(a => a.date).filter(Boolean)).size;
+            const totalPhotos = acts.reduce((s, a) => s + (Array.isArray(a.photos) ? a.photos.length : (a.photoCount || 0)), 0);
+
+            return \`
+              <div class="report-final-charts-page" style="page-break-before:always;break-before:page;padding-top:8px;">
+                <h3 style="font-size:1.08rem;font-weight:800;color:#0F172A;border-bottom:2px solid #1D4ED8;padding-bottom:6px;margin:0 0 12px 0;">
+                  සමස්ත ප්‍රගති සාරාංශය හා ප්‍රස්ථාර විශ්ලේෂණය (Progress Summary & Charts)
+                </h3>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
+                  <div style="border:1px solid #BFDBFE;background:#EFF6FF;border-radius:8px;padding:10px;text-align:center;">
+                    <div style="font-size:0.75rem;color:#334155;font-weight:600;">සමස්ත වැඩසටහන්</div>
+                    <div style="font-size:1.35rem;font-weight:800;color:#1D4ED8;">\${acts.length}</div>
+                  </div>
+                  <div style="border:1px solid #A7F3D0;background:#ECFDF5;border-radius:8px;padding:10px;text-align:center;">
+                    <div style="font-size:0.75rem;color:#334155;font-weight:600;">වාර්තා කළ වසම්</div>
+                    <div style="font-size:1.35rem;font-weight:800;color:#047857;">\${activeGns}</div>
+                  </div>
+                  <div style="border:1px solid #FDE68A;background:#FFFBEB;border-radius:8px;padding:10px;text-align:center;">
+                    <div style="font-size:0.75rem;color:#334155;font-weight:600;">ක්‍රියාකාරී දින</div>
+                    <div style="font-size:1.35rem;font-weight:800;color:#B45309;">\${activeDays}</div>
+                  </div>
+                  <div style="border:1px solid #DDD6FE;background:#F5F3FF;border-radius:8px;padding:10px;text-align:center;">
+                    <div style="font-size:0.75rem;color:#334155;font-weight:600;">සත්‍යාපිත ඡායාරූප</div>
+                    <div style="font-size:1.35rem;font-weight:800;color:#6D28D9;">\${totalPhotos}</div>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #CBD5E1;border-radius:8px;padding:10px 12px;margin-bottom:12px;background:#FFFFFF;break-inside:avoid;">
+                  <div style="font-size:0.86rem;font-weight:800;color:#0F172A;margin-bottom:6px;">1. මාසික වැඩසටහන් ප්‍රගතිය (Monthly Progress)</div>
+                  <svg viewBox="0 0 \${mSvgWidth} 170" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="36" y1="140" x2="\${mSvgWidth - 10}" y2="140" stroke="#94A3B8" stroke-width="1"/>
+                    \${mBarsSvg}
+                  </svg>
+                </div>
+
+                <div style="border:1px solid #CBD5E1;border-radius:8px;padding:10px 12px;margin-bottom:12px;background:#FFFFFF;break-inside:avoid;">
+                  <div style="font-size:0.86rem;font-weight:800;color:#0F172A;margin-bottom:6px;">2. ක්ෂේත්‍ර අනුව වැඩසටහන් ව්‍යාප්තිය (Sector Breakdown)</div>
+                  <svg viewBox="0 0 650 \${sSvgHeight}" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">
+                    \${sRowsSvg}
+                  </svg>
+                </div>
+
+                <div style="border:1px solid #CBD5E1;border-radius:8px;padding:10px 12px;margin-bottom:12px;background:#FFFFFF;break-inside:avoid;">
+                  <div style="font-size:0.86rem;font-weight:800;color:#0F172A;margin-bottom:6px;">3. වැඩිම වැඩසටහන් ක්‍රියාත්මක කළ ග්‍රාම නිලධාරී වසම් (Top GN Divisions)</div>
+                  <svg viewBox="0 0 650 \${gSvgHeight}" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">
+                    \${gRowsSvg}
+                  </svg>
+                </div>
+              </div>
+            \`;
+          }
+
+          // --- DOWNLOAD FORMAT 1: Clean Zero-Blank-Page A4 PDF / Print Engine ---
+          downloadReportPDF() {
+            let reportDoc = document.getElementById("printableReportDocument");
+            if (!reportDoc || !reportDoc.innerHTML.trim()) {
+              if (typeof this.generateReport === "function") this.generateReport();
+              reportDoc = document.getElementById("printableReportDocument");
+            }
+            if (!reportDoc || !reportDoc.innerHTML.trim()) return;
+
+            const reportTitle = this.currentReportState?.reportTitle || "Akmeemana_Praja_Report";
+            this.showToast("පිරිසිදු A4 PDF වාර්තාව සකසමින් පවතී...");
+
+            const oldFrame = document.getElementById("pssCleanPrintFrame");
+            if (oldFrame) oldFrame.remove();
+
+            const iframe = document.createElement("iframe");
+            iframe.id = "pssCleanPrintFrame";
+            iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;";
+            document.body.appendChild(iframe);
+
+            const docHtml = \`<!DOCTYPE html>
+          <html lang="si">
+          <head>
+            <meta charset="UTF-8" />
+            <title>\${reportTitle}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;600;700;800&display=swap" rel="stylesheet" />
+            <style>
+              @page { size: A4 portrait; margin: 10mm 10mm 12mm 10mm; }
+              * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+              html, body { margin: 0; padding: 0; background: #FFFFFF !important; color: #0F172A !important; font-family: 'Noto Sans Sinhala', sans-serif; font-size: 11.5px; line-height: 1.5; }
+              .report-doc-header { border-bottom: 2px solid #1D4ED8; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+              .report-doc-title { font-size: 16px; font-weight: 800; color: #0F172A; margin: 0 0 3px 0; }
+              .report-doc-subtitle { font-size: 11.5px; color: #334155; margin: 0; }
+              .report-meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px 10px; margin-bottom: 12px; }
+              .report-meta-item-label { font-size: 10px; color: #64748B; font-weight: 600; }
+              .report-meta-item-val { font-size: 11.5px; color: #0F172A; font-weight: 700; }
+              table, .report-table { width: 100%; border-collapse: collapse; margin: 8px 0 12px 0; font-size: 10.5px; }
+              th, td { border: 1px solid #CBD5E1; padding: 5px 7px; text-align: left; color: #0F172A; }
+              th { background: #EFF6FF; font-weight: 700; }
+              thead { display: table-header-group; }
+              tr { break-inside: avoid; page-break-inside: avoid; }
+              .report-program-block { break-inside: avoid; page-break-inside: avoid; }
+              .report-final-charts-page { page-break-before: always; break-before: page; }
+              .report-signatures { display: flex; justify-content: space-between; margin-top: 22px; padding-top: 12px; border-top: 1px dashed #94A3B8; break-inside: avoid; page-break-inside: avoid; }
+              .report-footer-info { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 8px; border-top: 1px solid #E2E8F0; font-size: 9.5px; color: #475569; break-inside: avoid; }
+              img { max-width: 100%; }
+            </style>
+          </head>
+          <body>
+            \${reportDoc.innerHTML}
+          </body>
+          </html>\`;
+
+            const fDoc = iframe.contentWindow.document;
+            fDoc.open();
+            fDoc.write(docHtml);
+            fDoc.close();
+
+            const triggerPrint = () => {
+              try {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+              } catch (e) {
+                window.print();
+              }
+            };
+
+            const imgs = Array.from(fDoc.querySelectorAll("img"));
+            if (imgs.length === 0) {
+              setTimeout(triggerPrint, 350);
+            } else {
+              const waitImgs = imgs.map(img => new Promise(res => {
+                if (img.complete) return res();
+                img.addEventListener("load", res, { once: true });
+                img.addEventListener("error", res, { once: true });
+              }));
+              Promise.race([Promise.all(waitImgs), new Promise(res => setTimeout(res, 4000))]).then(() => {
+                setTimeout(triggerPrint, 250);
+              });
+            }
+          }
+
+          `;
+
+          src = src.slice(0, i4) + newPdfAndCharts + src.slice(i5);
+          src = src.replace('  printReportDirect() {\n    window.print();\n  }', '  printReportDirect() {\n    this.downloadReportPDF();\n  }');
+          fs.writeFileSync('js/app.js', src, 'utf8');
+
+          let html = fs.readFileSync('index.html', 'utf8');
+          html = html.replace(/js\/app\.js\?v=\d+/, 'js/app.js?v=34');
+          html = html.replace(/js\/charts\.js\?v=[^"]+/, 'js/charts.js?v=20261127v1');
+          html = html.replace(/js\/data\.js\?v=[^"]+/, 'js/data.js?v=20261127v1');
+          fs.writeFileSync('index.html', html, 'utf8');
+          EOF
+          node --check js/app.js
+      - name: Commit patched reports & PDF engine
+        run: |
+          git config user.name "cdcakm2-ai"
+          git config user.email "cdcakm2@gmail.com"
+          git add js/app.js index.html
+          git diff --cached --quiet || (git commit -m "feat: fix blank PDF pages, group photos per program, add GN summary table and final-page SVG progress charts" && git push origin main)pdf.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Patch js/app.js reports & PDF engine and bump cache version
+        run: |
+          node - << 'EOF'
+          const fs = require('fs');
+          let src = fs.readFileSync('js/app.js', 'utf8');
+
+          const a1 = '    else if (reportType === "5") {';
+          const a2 = '    // -------------------------------------------------------------\n    // REPORT TYPE 6: වැඩසටහන් වර්ග අනුව වාර්තාව';
+          const i1 = src.indexOf(a1), i2 = src.indexOf(a2);
+          if (i1 === -1 || i2 === -1) throw new Error('Report 5 anchors missing');
+
+          const newReport5 = `    else if (reportType === "5") {
+            reportTitle = "ඡායාරූප සහිත ක්ෂේත්‍ර ප්‍රජා සංවර්ධන වැඩසටහන් වාර්තාව";
+            reportSubtitle = \`වැඩසටහන් අනුව වර්ගීකරණය කළ සම්පූර්ණ විස්තර, වසම් සාරාංශය හා ඡායාරූප එකතුව (\${periodText})\`;
+
+            const sortedActs = [...reportActs].sort((a, b) =>
+              String(a.gnNameSi || "").localeCompare(String(b.gnNameSi || ""), "si") ||
+              String(b.date || "").localeCompare(String(a.date || ""))
+            );
+
+            const gnSummaryMap = {};
+            sortedActs.forEach(a => {
+              const gn = a.gnNameSi || a.gnDivision || "වෙනත්";
+              if (!gnSummaryMap[gn]) gnSummaryMap[gn] = { gn, acts: 0, photos: 0 };
+              gnSummaryMap[gn].acts++;
+              gnSummaryMap[gn].photos += Array.isArray(a.photos) ? a.photos.length : (a.photoCount || 0);
+            });
+            const gnSummaryList = Object.values(gnSummaryMap).sort((a, b) => b.acts - a.acts || a.gn.localeCompare(b.gn, "si"));
+            const totalRepPhotos = gnSummaryList.reduce((s, x) => s + x.photos, 0);
+
+            const gnSummaryRowsHtml = gnSummaryList.map((g, i) => \`
+              <tr>
+                <td style="text-align:center;">\${i + 1}</td>
+                <td style="font-weight:700;">\${g.gn}</td>
+                <td style="text-align:center;font-weight:700;color:#1D4ED8;">\${g.acts}</td>
+                <td style="text-align:center;">\${g.photos}</td>
+              </tr>
+            \`).join("");
+
+            excelRows = [
+              ["අක්මීමන ප්‍රාදේශීය ලේකම් කාර්යාලය - ඡායාරූප සහිත ප්‍රජා සංවර්ධන වාර්තාව"],
+              ["දිනය:", currentDate, "කාලසීමාව:", periodText],
+              [],
+              ["අංකය", "ග්‍රාම නිලධාරී වසම", "දිනය", "ක්ෂේත්‍රය", "වැඩසටහනේ නම", "විස්තරය", "ඡායාරූප ගණන", "ඡායාරූප URL"]
+            ];
+            csvData = "අංකය,ග්‍රාම නිලධාරී වසම,දිනය,ක්ෂේත්‍රය,වැඩසටහනේ නම,විස්තරය,ඡායාරූප ගණන,ඡායාරූප URL\\n";
+
+            let groupedBlocksHtml = "";
+            sortedActs.forEach((a, idx) => {
+              const rawPhotos = Array.isArray(a.photos) ? a.photos : [];
+              const uniqueUrls = [];
+              const seenU = new Set();
+              rawPhotos.forEach(p => {
+                const u = this.resolveDriveImageUrl(p);
+                if (u && !seenU.has(u)) { seenU.add(u); uniqueUrls.push(u); }
+              });
+
+              const imgsHtml = uniqueUrls.length > 0
+                ? \`<div class="report-act-photo-strip" style="display:grid;grid-template-columns:repeat(\${Math.min(3, uniqueUrls.length)}, 1fr);gap:8px;margin-top:8px;">\${uniqueUrls.map((u, pi) => {
                     const mId = u.match(/\\/d\\/([a-zA-Z0-9_-]{20,})/) || u.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
                     const fb = mId ? \`https://drive.google.com/thumbnail?id=\${mId[1]}&sz=w1000\` : "";
                     const onErr = fb ? \` onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src='\${fb}';}"\` : "";
